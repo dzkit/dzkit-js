@@ -1,0 +1,559 @@
+:root {
+  --paper: #f3f5f2;
+  --surface: #ffffff;
+  --ink: #17211c;
+  --muted: #56625b;
+  --line: #d6dcd5;
+  --green: #0a6b45;
+  --green-soft: #e3f0e8;
+  --red: #b40f2a;
+  --red-soft: #f8e5e8;
+  --cheque: #f6dc7a;
+  --cheque-ink: #3d3412;
+  --plate: #ffcc00;
+  --code-bg: #1d2a23;
+  --code-ink: #dce8df;
+
+  --font-ui: 'Readex Pro', system-ui, sans-serif;
+  --font-doc: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-code: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  --step--1: 0.875rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.6rem;
+  --step-3: clamp(2rem, 4.5vw, 3rem);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #141a17;
+    --surface: #1c2420;
+    --ink: #e8eee9;
+    --muted: #9eaca3;
+    --line: #2f3b35;
+    --green: #4cc38a;
+    --green-soft: #173527;
+    --red: #ff7a8e;
+    --red-soft: #3a1c22;
+    --code-bg: #0f1512;
+    color-scheme: dark;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-weight: 300;
+  font-size: var(--step-0);
+  line-height: 1.6;
+}
+
+.wrap {
+  width: min(1080px, 100% - 32px);
+  margin-inline: auto;
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--green);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Header */
+.top {
+  border-bottom: 1px solid var(--line);
+}
+
+.top-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block: 14px;
+}
+
+.brand {
+  font-weight: 600;
+  font-size: var(--step-1);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+
+.brand::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 18px;
+  margin-inline-end: 10px;
+  vertical-align: -2px;
+  background: linear-gradient(90deg, var(--green) 50%, #fff 50%);
+  outline: 1px solid var(--line);
+}
+
+.lang {
+  display: flex;
+  gap: 4px;
+}
+
+.lang button,
+.segmented button,
+.copy {
+  font: inherit;
+  font-size: var(--step--1);
+  font-weight: 400;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.lang button[aria-pressed='true'] {
+  border-color: var(--ink);
+}
+
+/* Intro */
+.intro {
+  padding-block: 56px 32px;
+}
+
+h1 {
+  font-size: var(--step-3);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+  max-width: 18ch;
+}
+
+[dir='rtl'] h1 {
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+
+.lead {
+  font-size: var(--step-1);
+  color: var(--muted);
+  max-width: 52ch;
+  margin: 0 0 28px;
+}
+
+.install {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--code-bg);
+  color: var(--code-ink);
+  border-radius: 8px;
+  padding: 6px 6px 6px 16px;
+}
+
+[dir='rtl'] .install {
+  padding: 6px 16px 6px 6px;
+}
+
+.install code {
+  font-family: var(--font-code);
+  font-size: var(--step--1);
+}
+
+.install .copy {
+  color: var(--code-ink);
+  border-color: #3a4a41;
+}
+
+.toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 36px;
+  font-size: var(--step--1);
+}
+
+.toc a {
+  color: var(--muted);
+}
+
+/* Tools */
+.tool {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: 48px;
+  padding-block: 48px;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: 16px;
+}
+
+h2 {
+  font-size: var(--step-2);
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 0 0 8px;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: var(--step--1);
+  margin: 0 0 20px;
+  max-width: 48ch;
+}
+
+.field-label {
+  display: block;
+  font-size: var(--step--1);
+  font-weight: 400;
+  margin: 16px 0 6px;
+}
+
+input,
+select {
+  width: 100%;
+  font: inherit;
+  font-weight: 400;
+  font-size: var(--step-1);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+select {
+  font-size: var(--step-0);
+}
+
+input[dir='ltr'] {
+  text-align: left;
+}
+
+input:focus-visible,
+select:focus-visible {
+  outline-offset: 0;
+}
+
+.snippet {
+  margin: 20px 0 0;
+  background: var(--code-bg);
+  color: var(--code-ink);
+  border-radius: 8px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-family: var(--font-code);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.snippet .c {
+  color: #8fa898;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 3px;
+  background: var(--surface);
+}
+
+.segmented button[aria-checked='true'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.side,
+.stage {
+  min-width: 0;
+}
+
+.stage {
+  align-self: center;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 20px;
+  margin: 24px 0 0;
+  font-size: var(--step--1);
+}
+
+.facts dt {
+  color: var(--muted);
+}
+
+.facts dd {
+  margin: 0;
+  font-weight: 400;
+}
+
+[dir='rtl'] .facts dd[dir='ltr'] {
+  text-align: right;
+}
+
+.status {
+  margin: 16px 0 0;
+  font-size: var(--step--1);
+  font-weight: 400;
+  min-height: 1.6em;
+}
+
+.status.ok {
+  color: var(--green);
+}
+
+.status.bad {
+  color: var(--red);
+}
+
+/* RIP strip: the yellow band of a CCP cheque */
+.rip-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  background: var(--cheque);
+  color: var(--cheque-ink);
+  border-radius: 4px;
+  padding: 22px 24px;
+  font-family: var(--font-doc);
+  font-weight: 500;
+  font-size: clamp(1.4rem, 3.2vw, 2.1rem);
+  letter-spacing: 0.04em;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.18) 0 2px,
+    transparent 2px 9px
+  );
+}
+
+.rip-tag {
+  font-size: 0.55em;
+  font-weight: 600;
+  padding: 2px 6px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  align-self: center;
+}
+
+.rip-key {
+  font-weight: 600;
+  padding: 0 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.rip-strip.invalid .rip-key {
+  background: var(--red);
+  color: #fff;
+}
+
+/* Phone and ID display */
+.phone-big {
+  font-family: var(--font-doc);
+  font-weight: 500;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  letter-spacing: 0.03em;
+  margin: 0;
+  line-height: 1.1;
+  min-height: 1.1em;
+}
+
+/* Licence plate: Algerian rear plate, black on yellow */
+.plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: min(100%, 440px);
+  aspect-ratio: 520 / 110;
+  background: var(--plate);
+  color: #111;
+  border: 3px solid #111;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 4px var(--plate), inset 0 0 0 5px rgba(0, 0, 0, 0.35);
+  font-family: var(--font-doc);
+  font-weight: 600;
+  font-size: clamp(1.9rem, 5.4vw, 3.4rem);
+  letter-spacing: 0.06em;
+  padding-inline: 18px;
+}
+
+.plate.invalid {
+  background: #e9e3c6;
+  color: #7a7258;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+/* Amount in words: the "somme en lettres" lines of a cheque */
+.cheque {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 24px;
+}
+
+.cheque-line {
+  padding: 16px 0 12px;
+}
+
+.cheque-line + .cheque-line {
+  border-top: 1px dashed var(--line);
+}
+
+.cheque-label {
+  display: block;
+  font-size: var(--step--1);
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.cheque p {
+  margin: 0;
+  font-size: var(--step-1);
+  font-weight: 400;
+  line-height: 1.5;
+  background-image: linear-gradient(var(--line), var(--line));
+  background-size: 100% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  padding-bottom: 4px;
+}
+
+.cheque p[lang='ar'] {
+  font-size: calc(var(--step-1) * 1.08);
+  text-align: right;
+}
+
+/* Payslip */
+.payslip {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.payslip th,
+.payslip td {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.payslip th {
+  text-align: start;
+  font-weight: 300;
+}
+
+.payslip td {
+  text-align: end;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.payslip td[dir='ltr'] {
+  unicode-bidi: isolate;
+}
+
+.payslip .minus td {
+  color: var(--red);
+}
+
+.payslip .sub th,
+.payslip .sub td {
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+
+.payslip .total th,
+.payslip .total td {
+  border-bottom: 0;
+  font-size: var(--step-1);
+  font-weight: 600;
+  background: var(--green-soft);
+  color: var(--ink);
+}
+
+.employer {
+  font-size: var(--step--1);
+  color: var(--muted);
+  margin: 12px 0 0;
+}
+
+/* Footer */
+.foot {
+  border-top: 1px solid var(--line);
+  padding-block: 32px 48px;
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+.foot p {
+  margin: 0 0 8px;
+  max-width: 60ch;
+}
+
+.foot-links {
+  display: flex;
+  gap: 20px;
+}
+
+/* Arabic needs more line height */
+[dir='rtl'] body,
+[dir='rtl'] .lead,
+[dir='rtl'] .hint {
+  line-height: 1.8;
+}
+
+@media (max-width: 760px) {
+  .tool {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding-block: 36px;
+  }
+
+  .intro {
+    padding-block: 36px 24px;
+  }
+
+  .lang button {
+    padding: 6px 8px;
+  }
+
+  .payslip th,
+  .payslip td {
+    padding: 10px 14px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rip-key,
+  .plate {
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+}
