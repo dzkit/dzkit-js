@@ -60,19 +60,34 @@ export function grossToNet(gross: number, options: SalaryOptions = {}): SalaryRe
   };
 }
 
+/** How far below the found gross to look, in centimes (net dips last well under 20 DA). */
+const NET_DIP_WINDOW = 2_000;
+
 /**
- * Smallest gross salary that gives at least `targetNet`, found by bisection.
+ * Smallest gross salary, to the centime, whose net is at least `targetNet`.
  * Useful for job offers stated as a net amount.
  */
 export function netToGross(targetNet: number, options: SalaryOptions = {}): SalaryResult {
   if (!Number.isFinite(targetNet) || targetNet < 0) throw new RangeError(`Expected a non-negative amount, got ${targetNet}`);
-  let lo = targetNet;
-  let hi = targetNet * 2 + 10_000;
-  while (grossToNet(hi, options).net < targetNet) hi *= 2;
-  for (let i = 0; i < 100 && hi - lo > 0.005; i++) {
-    const mid = (lo + hi) / 2;
-    if (grossToNet(mid, options).net >= targetNet) hi = mid;
+  if (targetNet === 0) return grossToNet(0, options);
+  const netAt = (cents: number) => grossToNet(cents / 100, options).net;
+  // Search whole centimes. Net is never above gross, so any gross below the target
+  // gives too little: `lo` always fails and `hi` always succeeds.
+  let lo = Math.ceil(targetNet * 100) - 1;
+  let hi = Math.max(lo + 1, lo * 2);
+  while (netAt(hi) < targetNet) {
+    lo = hi;
+    hi *= 2;
+  }
+  while (hi - lo > 1) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (netAt(mid) >= targetNet) hi = mid;
     else lo = mid;
   }
-  return grossToNet(Math.ceil(hi * 100) / 100, options);
+  // Net is not strictly increasing at the centime: the IRG is rounded down to 0.1 DA
+  // and jumps by about 1.5 DA when taxable income passes 30 000 DA. A slightly lower
+  // gross can still reach the target, so look a little below the one found.
+  let best = hi;
+  for (let c = hi - 1; c >= Math.max(0, hi - NET_DIP_WINDOW); c--) if (netAt(c) >= targetNet) best = c;
+  return grossToNet(best / 100, options);
 }

@@ -71,6 +71,10 @@ describe('Arabic', () => {
     [2500, 'ألفان وخمسمائة'],
     [1_000_000, 'مليون'],
     [5_000_000, 'خمسة ملايين'],
+    // A count before a scale word is in construct form: the dual loses its ن.
+    [200_000, 'مائتا ألف'],
+    [200_200, 'مائتا ألف ومائتان'],
+    [200_000_000, 'مائتا مليون'],
   ])('%i → %s', (n, words) => expect(toWordsAr(n)).toBe(words));
 
   it('writes DZD amounts with noun and adjective agreement', () => {
@@ -80,6 +84,36 @@ describe('Arabic', () => {
     expect(amountToWordsAr(15)).toBe('خمسة عشر دينارا جزائريا');
     expect(amountToWordsAr(100)).toBe('مائة دينار جزائري');
     expect(amountToWordsAr(1250.5)).toBe('ألف ومائتان وخمسون دينارا جزائريا وخمسون سنتيما');
+  });
+
+  // Before the currency, the number's last word takes the construct form (إضافة):
+  // the dual loses its ن and ألفا / مليونا become ألف / مليون.
+  it.each([
+    [200, 'مائتا دينار جزائري'],
+    [1_200, 'ألف ومائتا دينار جزائري'],
+    [2_000, 'ألفا دينار جزائري'],
+    [11_000, 'أحد عشر ألف دينار جزائري'],
+    [45_000, 'خمسة وأربعون ألف دينار جزائري'],
+    [50_000, 'خمسون ألف دينار جزائري'],
+    [200_000, 'مائتا ألف دينار جزائري'],
+    [2_000_000, 'مليونا دينار جزائري'],
+    [11_000_000, 'أحد عشر مليون دينار جزائري'],
+    [2_000_000_000, 'مليارا دينار جزائري'],
+    // Unchanged when something follows the scale word or the form is not dual/accusative.
+    [2_500, 'ألفان وخمسمائة دينار جزائري'],
+    [3_000, 'ثلاثة آلاف دينار جزائري'],
+    [45_250, 'خمسة وأربعون ألفا ومائتان وخمسون دينارا جزائريا'],
+    [200.5, 'مائتا دينار جزائري وخمسون سنتيما'],
+  ])('amount %d → %s', (amount, words) => expect(amountToWordsAr(amount)).toBe(words));
+
+  it('rounds to the centime half up, as the amount is written', () => {
+    expect(amountToWordsAr(1.005)).toBe('دينار جزائري واحد وسنتيم واحد');
+    expect(amountToWordsFr(1.005)).toBe('un dinar algérien et un centime');
+    expect(amountToWordsFr(2.675)).toBe('deux dinars algériens et soixante-huit centimes');
+    expect(amountToWordsFr(0.285)).toBe('zéro dinar algérien et vingt-neuf centimes');
+    expect(amountToWordsFr(10.075)).toBe('dix dinars algériens et huit centimes');
+    expect(amountToWordsFr(1.004)).toBe('un dinar algérien');
+    expect(amountToWordsFr(123_456_789.995)).toBe('cent vingt-trois millions quatre cent cinquante-six mille sept cent quatre-vingt-dix dinars algériens');
   });
 
   it('amountToWords switches language', () => {

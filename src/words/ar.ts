@@ -8,7 +8,14 @@
  *   11–99    → singular accusative        (أحد عشر دينارا)
  *   00, 01, 02 after hundreds → singular  (مائة دينار)
  * The same rules give ألف / ألفان / آلاف / ألفا, مليون / مليونان / ملايين / مليونا, etc.
+ *
+ * When a number is directly followed by the noun it counts (إضافة), its last word
+ * takes the construct form: the dual loses its ن (مائتا دينار، ألفا دينار) and the
+ * accusative ألفا / مليونا becomes ألف / مليون (خمسون ألف دينار). This applies to the
+ * scale words inside a number (مائتا ألف) and to the whole number before the currency.
  */
+
+import { toCents } from './fr';
 
 const ONES = ['', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة', 'عشرة'];
 const TEENS: Record<number, string> = {
@@ -26,11 +33,12 @@ function below100(n: number): string {
   return u === 0 ? (TENS[t] as string) : `${ONES[u]} و${TENS[t]}`;
 }
 
-function below1000(n: number): string {
+/** 0–999. `construct`: a noun follows directly, so 200 is written مائتا. */
+function below1000(n: number, construct = false): string {
   const h = Math.floor(n / 100);
   const r = n % 100;
   if (h === 0) return below100(r);
-  if (r === 0) return HUNDREDS[h] as string;
+  if (r === 0) return h === 2 && construct ? 'مائتا' : (HUNDREDS[h] as string);
   return `${HUNDREDS[h]} و${below100(r)}`;
 }
 
@@ -45,26 +53,40 @@ export interface ArNoun {
   accusative: string;
 }
 
-const SCALES: { value: number; noun: ArNoun }[] = [
-  { value: 1_000_000_000, noun: { singular: 'مليار', dual: 'ملياران', plural: 'مليارات', accusative: 'مليارا' } },
-  { value: 1_000_000, noun: { singular: 'مليون', dual: 'مليونان', plural: 'ملايين', accusative: 'مليونا' } },
-  { value: 1_000, noun: { singular: 'ألف', dual: 'ألفان', plural: 'آلاف', accusative: 'ألفا' } },
+interface ScaleNoun extends ArNoun {
+  /** Dual before a noun: ألفا دينار */
+  dualConstruct: string;
+}
+
+const SCALES: { value: number; noun: ScaleNoun }[] = [
+  {
+    value: 1_000_000_000,
+    noun: { singular: 'مليار', dual: 'ملياران', plural: 'مليارات', accusative: 'مليارا', dualConstruct: 'مليارا' },
+  },
+  {
+    value: 1_000_000,
+    noun: { singular: 'مليون', dual: 'مليونان', plural: 'ملايين', accusative: 'مليونا', dualConstruct: 'مليونا' },
+  },
+  { value: 1_000, noun: { singular: 'ألف', dual: 'ألفان', plural: 'آلاف', accusative: 'ألفا', dualConstruct: 'ألفا' } },
 ];
 
-/** "count + noun" with the agreement rules above. */
-function counted(count: number, noun: ArNoun): string {
+/**
+ * "count + scale noun" with the agreement rules above. The count is always followed
+ * by the scale noun, so it is written in construct form (مائتا ألف). `construct`:
+ * the scale noun itself is followed by another noun (ألفا دينار، خمسون ألف دينار).
+ */
+function counted(count: number, noun: ScaleNoun, construct: boolean): string {
   if (count === 1) return noun.singular;
-  if (count === 2) return noun.dual;
-  const words = below1000(count);
+  if (count === 2) return construct ? noun.dualConstruct : noun.dual;
+  const words = below1000(count, true);
   const last2 = count % 100;
   if (last2 >= 3 && last2 <= 10) return `${words} ${noun.plural}`;
-  if (last2 >= 11) return `${words} ${noun.accusative}`;
+  if (last2 >= 11) return `${words} ${construct ? noun.singular : noun.accusative}`;
   return `${words} ${noun.singular}`;
 }
 
-/** Integer to Arabic words, e.g. 2500 → "ألفان وخمسمائة". */
-export function toWordsAr(n: number): string {
-  if (!Number.isSafeInteger(n) || n < 0) throw new RangeError(`Expected a non-negative integer, got ${n}`);
+/** Integer to words. `construct`: a noun follows directly (an amount before its currency). */
+function wordsAr(n: number, construct: boolean): string {
   if (n === 0) return 'صفر';
   const parts: string[] = [];
   let rest = n;
@@ -72,11 +94,19 @@ export function toWordsAr(n: number): string {
     const count = Math.floor(rest / s.value);
     rest %= s.value;
     if (count === 0) continue;
-    if (count >= 1000) parts.push(`${toWordsAr(count)} ${s.noun.singular}`);
-    else parts.push(counted(count, s.noun));
+    // The scale noun is in construct only if it is the last word of the number.
+    const last = construct && rest === 0;
+    if (count >= 1000) parts.push(`${wordsAr(count, true)} ${s.noun.singular}`);
+    else parts.push(counted(count, s.noun, last));
   }
-  if (rest > 0) parts.push(below1000(rest));
+  if (rest > 0) parts.push(below1000(rest, construct));
   return parts.join(' و');
+}
+
+/** Integer to Arabic words, e.g. 2500 → "ألفان وخمسمائة", 200000 → "مائتا ألف". */
+export function toWordsAr(n: number): string {
+  if (!Number.isSafeInteger(n) || n < 0) throw new RangeError(`Expected a non-negative integer, got ${n}`);
+  return wordsAr(n, false);
 }
 
 export interface ArCurrency {
@@ -107,14 +137,12 @@ function amountPart(count: number, noun: ArNoun, adjective?: ArNoun): string {
   if (count === 0) return `صفر ${nounWithAdj}`;
   if (count === 1) return `${nounWithAdj} واحد`;
   if (count === 2) return nounWithAdj;
-  return `${toWordsAr(count)} ${nounWithAdj}`;
+  return `${wordsAr(count, true)} ${nounWithAdj}`;
 }
 
 /** Amount in DZD to Arabic words: 1250.5 → "ألف ومائتان وخمسون دينارا جزائريا وخمسون سنتيما". */
 export function amountToWordsAr(amount: number, currency: ArCurrency = DINAR_AR): string {
-  if (!Number.isFinite(amount) || amount < 0) throw new RangeError(`Expected a non-negative amount, got ${amount}`);
-  const totalCents = Math.round(amount * 100);
-  if (!Number.isSafeInteger(totalCents)) throw new RangeError(`Amount too large: ${amount}`);
+  const totalCents = toCents(amount);
   const whole = Math.floor(totalCents / 100);
   const cents = totalCents % 100;
   let out = amountPart(whole, currency.noun, currency.adjective);
