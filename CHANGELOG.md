@@ -27,6 +27,7 @@ Follows [dzkit-spec 0.3.0](https://github.com/dzkit/dzkit-spec/blob/main/CHANGEL
 - `{ at }` option (a `Date` or `"YYYY-MM-DD"`) on `calculateIrg`, `irgBreakdown`, `grossToNet`, `netToGross` and `getWilaya`; `parsePlate` now also accepts a `"YYYY-MM-DD"` string.
 - Wilayas 49–69 carry `parent` and `validFrom`.
 - Phone numbers accept `/` as a separator, as in `0771/23/45/67`.
+- The public API is listed explicitly and pinned by a test, so internal helpers can't leak into it.
 
 ### Fixed
 
