@@ -144,20 +144,24 @@ What it implements (article 104 of the CIDTA, scale from the 2022 finance law, u
 
 Published reference values from the DGI table are part of the unit tests. Out of scope for now: non-monthly bonuses (10 % flat withholding), exempt allowances, and the training and apprenticeship taxes.
 
-**Not tax advice.** Rules change with finance laws. If a figure matters, check it with an accountant, and please open an issue if you spot a difference.
-
 ## Sources
 
-Every rule comes from an official text or a reliable source, listed with its date and how confident we are in [SOURCES.md](SOURCES.md). If you know a better source, please open an issue.
+Every rule comes from an official text, ranked by the hierarchy of Algerian legal texts. The rules, their sources and the evidence behind each one are kept in [dzkit-spec](https://github.com/dzkit/dzkit-spec), shared by every dzkit package; see its [trust report](https://github.com/dzkit/dzkit-spec/blob/main/TRUST.md).
+
+## Not legal advice
+
+This is reference material, maintained with care and linked to its sources so you can check every value. It is not legal or tax advice. When a value matters, check it against the official text, and please [open an issue](https://github.com/dzkit/dzkit-js/issues) if you find a difference.
 
 ## Contributing
 
-Issues and pull requests are welcome, in English, French or Arabic. See [CONTRIBUTING.md](CONTRIBUTING.md). Especially useful:
+Issues and pull requests are welcome in العربية, Français or English. See [CONTRIBUTING.md](CONTRIBUTING.md) and the project's [governance](https://github.com/dzkit/dzkit-spec/blob/main/GOVERNANCE.md).
 
-- Real examples that fail (a RIP, a plate, an IRG amount from a payslip)
-- Rule changes from a new finance law
-- A PHP / Laravel port (planned, under the [dzkit](https://github.com/dzkit) organization)
+Especially useful:
+
+- A real example that fails (a RIP, a plate, an IRG amount from a payslip)
+- A rule change from a new finance law
+- The PHP / Laravel port
 
 ## License
 
-[MIT](LICENSE) © Siroukane
+[MIT](LICENSE) © Siroukane and the dzkit contributors. Official texts belong to their publishers.
