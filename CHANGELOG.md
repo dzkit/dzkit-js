@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- The data tables (wilayas, phone blocks, RIP and CCP key parameters, NIF/NIS lengths, plate categories and dates, IRG scale and abatements, CNAS rates) are now generated from [dzkit-spec](https://github.com/dzkit/dzkit-spec) 0.2.0 instead of being typed by hand. Results are identical to 0.1.0 (checked on more than 200,000 inputs), except two plate category names, which now follow the spec: "Autocar ou autobus" and "Remorque ou semi-remorque".
+- `SPEC_VERSION` tells which dzkit-spec version the data comes from.
+
 ### Tests
 
 - Every rule is now checked against the shared test cases of [dzkit-spec](https://github.com/dzkit/dzkit-spec) 0.2.0 (144 cases, each linked to its source). dzkit-spec is a development dependency only: the published package still has no dependencies.

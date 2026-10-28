@@ -13,21 +13,23 @@
  *   5. round down to the tenth of a dinar, as the DGI scale does
  */
 
+import {
+  IRG_ABATEMENT,
+  IRG_EXEMPTION_THRESHOLD,
+  IRG_FAVOURABLE_SMOOTHING,
+  IRG_MONTHLY_BRACKETS,
+  IRG_ROUNDING_STEP,
+  IRG_SALARIED_SMOOTHING,
+} from '../generated/spec-data';
+
 export interface Bracket {
   /** Upper bound of the bracket in DA per month (Infinity for the last one). */
   upTo: number;
   rate: number;
 }
 
-/** Monthly scale: the annual article-104 scale divided by 12. */
-export const IRG_BRACKETS_2022: readonly Bracket[] = Object.freeze([
-  { upTo: 20_000, rate: 0 },
-  { upTo: 40_000, rate: 0.23 },
-  { upTo: 80_000, rate: 0.27 },
-  { upTo: 160_000, rate: 0.3 },
-  { upTo: 320_000, rate: 0.33 },
-  { upTo: Infinity, rate: 0.35 },
-]);
+/** Monthly scale: the annual article-104 scale divided by 12. Generated from dzkit-spec. */
+export const IRG_BRACKETS_2022: readonly Bracket[] = Object.freeze(IRG_MONTHLY_BRACKETS.map((b) => Object.freeze({ ...b })));
 
 export type IrgRegime = 'salaried' | 'retired' | 'disabled';
 
@@ -44,12 +46,12 @@ export interface IrgRules {
 /** Rules in force for salaries since January 2022 (still in force in 2026). */
 export const IRG_RULES_2022: IrgRules = Object.freeze({
   brackets: IRG_BRACKETS_2022,
-  exemptionThreshold: 30_000,
-  abatementRate: 0.4,
-  abatementMin: 1_000,
-  abatementMax: 1_500,
-  salariedSmoothingUpTo: 35_000,
-  favourableSmoothingUpTo: 42_500,
+  exemptionThreshold: IRG_EXEMPTION_THRESHOLD,
+  abatementRate: IRG_ABATEMENT.rate,
+  abatementMin: IRG_ABATEMENT.min,
+  abatementMax: IRG_ABATEMENT.max,
+  salariedSmoothingUpTo: IRG_SALARIED_SMOOTHING.below,
+  favourableSmoothingUpTo: IRG_FAVOURABLE_SMOOTHING.below,
 });
 
 export interface IrgOptions {
@@ -71,9 +73,19 @@ export interface IrgBreakdown {
   exempt: boolean;
 }
 
-function floorTenth(x: number): number {
-  // The small epsilon absorbs floating-point noise such as 957.8499999.
-  return Math.floor(x * 10 + 1e-6) / 10;
+function floorToStep(x: number): number {
+  // Round down to the DGI step (0.1 DA). The small epsilon absorbs floating-point
+  // noise such as 957.8499999.
+  const perUnit = Math.round(1 / IRG_ROUNDING_STEP);
+  return Math.floor(x * perUnit + 1e-6) / perUnit;
+}
+
+/** Second abatement: IRG × a/b − c/d, multiplying before dividing as the DGI does. */
+function smooth(
+  irg: number,
+  { multiplier: [a, b], subtract: [c, d] }: { multiplier: readonly [number, number]; subtract: readonly [number, number] },
+): number {
+  return (irg * a) / b - c / d;
 }
 
 function round2(x: number): number {
@@ -108,12 +120,12 @@ export function irgBreakdown(taxable: number, options: IrgOptions = {}): IrgBrea
   let irg = afterFirst;
 
   if (regime === 'salaried' && taxable < r.salariedSmoothingUpTo) {
-    irg = (afterFirst * 137) / 51 - 27_925 / 8;
+    irg = smooth(afterFirst, IRG_SALARIED_SMOOTHING);
   } else if (regime !== 'salaried' && taxable < r.favourableSmoothingUpTo) {
-    irg = (afterFirst * 93) / 61 - 81_213 / 41;
+    irg = smooth(afterFirst, IRG_FAVOURABLE_SMOOTHING);
   }
 
-  irg = Math.max(0, floorTenth(irg));
+  irg = Math.max(0, floorToStep(irg));
   return {
     taxable,
     scaleIrg,

@@ -1,14 +1,16 @@
+import { CNAS_EMPLOYEE_RATE, CNAS_EMPLOYER_RATE, CNAS_SOCIAL_SERVICES_RATE } from '../generated/spec-data';
 import { irgBreakdown, type IrgOptions } from './irg';
 
 /**
  * CNAS social security contributions (CNAS employer page):
  *   employee 9 %, employer 25 % + 0.5 % for social services (œuvres sociales).
  * The base is gross pay; there is no ceiling, and it may not fall below the SNMG.
+ * Rates are generated from dzkit-spec (rule payroll.cnas).
  */
 export const CNAS_RATES = Object.freeze({
-  employee: 0.09,
-  employer: 0.25,
-  socialServices: 0.005,
+  employee: CNAS_EMPLOYEE_RATE,
+  employer: CNAS_EMPLOYER_RATE,
+  socialServices: CNAS_SOCIAL_SERVICES_RATE,
 });
 
 export interface SalaryOptions extends IrgOptions {

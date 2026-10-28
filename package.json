@@ -55,7 +55,9 @@
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run typecheck && npm test && npm run build",
+    "generate": "node scripts/generate-data.mjs",
+    "generate:check": "node scripts/generate-data.mjs --check",
+    "prepublishOnly": "npm run generate:check && npm run typecheck && npm test && npm run build",
     "demo": "npm run build && node scripts/build-demo.mjs"
   },
   "devDependencies": {
