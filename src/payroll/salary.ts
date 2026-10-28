@@ -1,5 +1,7 @@
 import { CNAS_EMPLOYEE_RATE, CNAS_EMPLOYER_RATE, CNAS_SOCIAL_SERVICES_RATE } from '../generated/spec-data';
 import { irgBreakdown, type IrgOptions } from './irg';
+import { checkAmount, dayOf, DzkitError } from '../core';
+import { toCents } from '../words/fr';
 
 /**
  * CNAS social security contributions (CNAS employer page):
@@ -31,8 +33,17 @@ export interface SalaryResult {
   employerCost: number;
 }
 
-function round2(x: number): number {
-  return Math.round((x + Number.EPSILON) * 100) / 100;
+/** amountCents × rate, rounded half up to the centime, with integers. */
+function percentOf(amountCents: number, rate: number): number {
+  const ppm = BigInt(Math.round(rate * 1_000_000));
+  return Number((BigInt(amountCents) * ppm + 500_000n) / 1_000_000n);
+}
+
+function checkRate(rate: number, name: string): number {
+  if (typeof rate !== 'number' || !Number.isFinite(rate) || rate < 0 || rate > 1) {
+    throw new DzkitError('invalid-option', `${name} must be a rate between 0 and 1, got ${String(rate)}`);
+  }
+  return rate;
 }
 
 /**
@@ -40,37 +51,45 @@ function round2(x: number): number {
  * Non-monthly bonuses (10 % flat withholding) and exempt allowances are out of scope.
  */
 export function grossToNet(gross: number, options: SalaryOptions = {}): SalaryResult {
-  if (!Number.isFinite(gross) || gross < 0) throw new RangeError(`Expected a non-negative amount, got ${gross}`);
-  const employeeRate = options.employeeRate ?? CNAS_RATES.employee;
-  const employerRate = options.employerRate ?? CNAS_RATES.employer + CNAS_RATES.socialServices;
+  checkAmount(gross, 'gross salary');
+  const employeeRate = checkRate(options.employeeRate ?? CNAS_RATES.employee, 'employeeRate');
+  const employerRate = checkRate(options.employerRate ?? CNAS_RATES.employer + CNAS_RATES.socialServices, 'employerRate');
 
-  const cnasEmployee = round2(gross * employeeRate);
-  const taxable = round2(gross - cnasEmployee);
-  const { irg } = irgBreakdown(taxable, options);
-  const cnasEmployer = round2(gross * employerRate);
+  const grossCents = toCents(gross);
+  const cnasEmployeeCents = percentOf(grossCents, employeeRate);
+  const taxableCents = grossCents - cnasEmployeeCents;
+  const { irg } = irgBreakdown(taxableCents / 100, options);
+  const cnasEmployerCents = percentOf(grossCents, employerRate);
 
   return {
     gross,
-    cnasEmployee,
-    taxable,
+    cnasEmployee: cnasEmployeeCents / 100,
+    taxable: taxableCents / 100,
     irg,
-    net: round2(taxable - irg),
-    cnasEmployer,
-    employerCost: round2(gross + cnasEmployer),
+    net: (taxableCents - Math.round(irg * 100)) / 100,
+    cnasEmployer: cnasEmployerCents / 100,
+    employerCost: (grossCents + cnasEmployerCents) / 100,
   };
 }
 
-/** How far below the found gross to look, in centimes (net dips last well under 20 DA). */
-const NET_DIP_WINDOW = 2_000;
+/**
+ * Largest drop of net pay when gross goes up, in DA. Measured at every centime of gross
+ * from 30 000 to 60 000 DA: 1.49 DA (salaried) where taxable income passes 30 000 DA,
+ * because the law's smoothing formula starts at about 1.5 DA of IRG; 0.1 DA elsewhere,
+ * because the IRG is rounded down to 0.1 DA. 2 DA leaves a margin.
+ */
+const MAX_NET_DIP = 2;
 
 /**
  * Smallest gross salary, to the centime, whose net is at least `targetNet`.
  * Useful for job offers stated as a net amount.
  */
 export function netToGross(targetNet: number, options: SalaryOptions = {}): SalaryResult {
-  if (!Number.isFinite(targetNet) || targetNet < 0) throw new RangeError(`Expected a non-negative amount, got ${targetNet}`);
-  if (targetNet === 0) return grossToNet(0, options);
-  const netAt = (cents: number) => grossToNet(cents / 100, options).net;
+  checkAmount(targetNet, 'net salary');
+  // Resolve the date once instead of on every step.
+  const opts: SalaryOptions = { ...options, at: dayOf(options.at) };
+  if (targetNet === 0) return grossToNet(0, opts);
+  const netAt = (cents: number) => grossToNet(cents / 100, opts).net;
   // Search whole centimes. Net is never above gross, so any gross below the target
   // gives too little: `lo` always fails and `hi` always succeeds.
   let lo = Math.ceil(targetNet * 100) - 1;
@@ -87,7 +106,12 @@ export function netToGross(targetNet: number, options: SalaryOptions = {}): Sala
   // Net is not strictly increasing at the centime: the IRG is rounded down to 0.1 DA
   // and jumps by about 1.5 DA when taxable income passes 30 000 DA. A slightly lower
   // gross can still reach the target, so look a little below the one found.
+  // Once the net is more than MAX_NET_DIP below the target, no lower gross can reach it.
   let best = hi;
-  for (let c = hi - 1; c >= Math.max(0, hi - NET_DIP_WINDOW); c--) if (netAt(c) >= targetNet) best = c;
-  return grossToNet(best / 100, options);
+  for (let c = hi - 1; c >= 0; c--) {
+    const net = netAt(c);
+    if (net >= targetNet) best = c;
+    else if (net < targetNet - MAX_NET_DIP) break;
+  }
+  return grossToNet(best / 100, opts);
 }

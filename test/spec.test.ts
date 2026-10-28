@@ -15,7 +15,8 @@ import vectors from 'dzkit-spec/dist/vectors.json';
 interface Case {
   id: string;
   input: Record<string, any>;
-  expected: Record<string, unknown> | null;
+  expected?: Record<string, unknown> | null;
+  error?: string;
   source?: string;
 }
 interface Suite {
@@ -31,7 +32,7 @@ interface VectorBundle {
 const bundle = vectors as unknown as VectorBundle;
 
 /** The format version this file understands. A new major format needs code changes here. */
-const SUPPORTED_SCHEMA = 2;
+const SUPPORTED_SCHEMA = 3;
 
 type Runner = (input: Record<string, any>) => Record<string, unknown> | null;
 
@@ -41,12 +42,8 @@ const RUNNERS: Record<string, Runner> = {
     return p && { valid: true, account: p.account, key: p.key };
   },
   'rip.from-ccp': ({ account }) => {
-    try {
-      const rip = dz.ccpToRip(account);
-      return { rip, ccp_key: dz.ccpKey(account), rip_key: rip.slice(18) };
-    } catch {
-      return null;
-    }
+    const rip = dz.ccpToRip(account);
+    return rip ? { rip, ccp_key: dz.ccpKey(account), rip_key: rip.slice(18) } : null;
   },
   'phone.parse': ({ number }) => {
     const p = dz.parsePhone(number);
@@ -59,14 +56,14 @@ const RUNNERS: Record<string, Runner> = {
     return out;
   },
   'plate.parse': ({ plate, date }) => {
-    const p = dz.parsePlate(plate, { at: new Date(`${date}T12:00:00+01:00`) });
+    const p = dz.parsePlate(plate, { at: date });
     return p && { serial: p.serial, category: p.category, year: p.year, wilaya: p.wilaya.code };
   },
   'nif.validate': ({ value }) => ({ valid: dz.isValidNif(value) }),
   'nis.validate': ({ value }) => ({ valid: dz.isValidNis(value) }),
-  'irg.calculate': ({ taxable, regime }) => ({ irg: dz.calculateIrg(taxable, { regime }) }),
-  'salary.gross-to-net': ({ gross, regime }) => {
-    const r = dz.grossToNet(gross, { regime });
+  'irg.calculate': ({ taxable, regime, date }) => ({ irg: dz.calculateIrg(taxable, { regime, at: date }) }),
+  'salary.gross-to-net': ({ gross, regime, date }) => {
+    const r = dz.grossToNet(gross, { regime, at: date });
     return {
       cnas_employee: r.cnasEmployee,
       taxable: r.taxable,
@@ -79,8 +76,8 @@ const RUNNERS: Record<string, Runner> = {
   'words.amount-fr': ({ amount }) => ({ text: dz.amountToWordsFr(amount) }),
   'words.number-ar': ({ number }) => ({ text: dz.toWordsAr(number) }),
   'words.amount-ar': ({ amount }) => ({ text: dz.amountToWordsAr(amount) }),
-  'wilaya.lookup': ({ code }) => {
-    const w = dz.getWilaya(code);
+  'wilaya.lookup': ({ code, date }) => {
+    const w = dz.getWilaya(code, { at: date });
     return w ? { name_fr: w.name, name_ar: w.nameAr } : null;
   },
 };
@@ -101,14 +98,27 @@ describe(`dzkit-spec ${bundle.version} shared test cases`, () => {
       for (const c of suite.cases) {
         const label = c.source ? `${c.id} (${c.source})` : c.id;
         it.skipIf(!run)(label, () => {
+          if (c.error !== undefined) {
+            // An impossible request: must throw a DzkitError with this code.
+            let thrown: unknown;
+            try {
+              run!(c.input);
+            } catch (e) {
+              thrown = e;
+            }
+            expect(thrown, 'expected an error').toBeInstanceOf(dz.DzkitError);
+            expect((thrown as dz.DzkitError).code).toBe(c.error);
+            return;
+          }
           const got = run!(c.input);
           if (c.expected === null) {
             expect(got === null || got.valid === false, `expected rejection, got ${JSON.stringify(got)}`).toBe(true);
             return;
           }
           expect(got).not.toBeNull();
+          const expected = c.expected as Record<string, unknown>;
           // Fields set to null in the spec are not pinned yet; only compare the others.
-          const pinned = Object.fromEntries(Object.entries(c.expected).filter(([, v]) => v !== null));
+          const pinned = Object.fromEntries(Object.entries(expected).filter(([, v]) => v !== null));
           const actual = Object.fromEntries(Object.keys(pinned).map((k) => [k, got![k]]));
           expect(actual).toEqual(pinned);
         });

@@ -21,6 +21,7 @@ import {
   PHONE_SERVICE_BLOCKS,
   PHONE_VOIP_BLOCKS,
 } from '../generated/spec-data';
+import { cleanText } from '../core';
 
 export type PhoneType = 'mobile' | 'landline' | 'service' | 'voip';
 export type MobileOperator = 'Ooredoo' | 'Mobilis' | 'Djezzy';
@@ -58,8 +59,10 @@ function inBlocks(prefix: number, blocks: readonly (readonly [number, number])[]
   return blocks.some(([from, to]) => prefix >= from && prefix <= to);
 }
 
-function toNationalNumber(input: string): string | null {
-  let s = input.trim().replace(/[\s.\-()]/g, '');
+function toNationalNumber(input: unknown): string | null {
+  const text = cleanText(input);
+  if (text === null) return null;
+  let s = text.replace(/[\s.\-()/]/g, '');
   if (s.startsWith('+213')) s = s.slice(4);
   else if (s.startsWith('00213')) s = s.slice(5);
   else if (s.startsWith('213') && (s.length === 11 || s.length === 12)) s = s.slice(3);
@@ -69,8 +72,12 @@ function toNationalNumber(input: string): string | null {
   return /^\d+$/.test(s) ? s : null;
 }
 
-/** Parses an Algerian phone number. Accepts 0551…, +213551…, 00213551…, with spaces or dashes. */
-export function parsePhone(input: string): ParsedPhone | null {
+/**
+ * Parses an Algerian phone number. Accepts 0551…, +213551…, 00213551…, 213551…, with
+ * spaces, dots, dashes, slashes or parentheses, and Arabic-Indic digits. Returns null
+ * for anything else, including non-text values.
+ */
+export function parsePhone(input: unknown): ParsedPhone | null {
   const n = toNationalNumber(input);
   if (n === null) return null;
   const base = { nationalNumber: n, national: `0${n}`, e164: `+213${n}` };
@@ -100,7 +107,7 @@ export interface PhoneOptions {
   allocatedOnly?: boolean;
 }
 
-export function isValidPhone(input: string, options: PhoneType | PhoneOptions = {}): boolean {
+export function isValidPhone(input: unknown, options: PhoneType | PhoneOptions = {}): boolean {
   const opts: PhoneOptions = typeof options === 'string' ? { type: options } : options;
   const p = parsePhone(input);
   if (p === null) return false;
@@ -109,18 +116,18 @@ export function isValidPhone(input: string, options: PhoneType | PhoneOptions = 
   return true;
 }
 
-export function isValidMobile(input: string, options: Omit<PhoneOptions, 'type'> = {}): boolean {
+export function isValidMobile(input: unknown, options: Omit<PhoneOptions, 'type'> = {}): boolean {
   return isValidPhone(input, { ...options, type: 'mobile' });
 }
 
-export function getMobileOperator(input: string): MobileOperator | null {
+export function getMobileOperator(input: unknown): MobileOperator | null {
   return parsePhone(input)?.operator ?? null;
 }
 
-/** Formats as "0551 23 45 67" (national) or "+213 551 23 45 67" (international). */
-export function formatPhone(input: string, style: 'national' | 'international' = 'national'): string {
+/** Formats as "0551 23 45 67" (national) or "+213 551 23 45 67" (international); null if invalid. */
+export function formatPhone(input: unknown, style: 'national' | 'international' = 'national'): string | null {
   const p = parsePhone(input);
-  if (!p) throw new TypeError(`Invalid Algerian phone number: ${input}`);
+  if (!p) return null;
   const n = p.nationalNumber;
   const pairs = (s: string) => s.match(/\d{2}/g)?.join(' ') ?? s;
   if (p.type === 'landline') {

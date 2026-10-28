@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.3.0 — 2026-10-28
+
+Follows [dzkit-spec 0.3.0](https://github.com/dzkit/dzkit-spec/blob/main/CHANGELOG.md) and its new [OPERATIONS.md](https://github.com/dzkit/dzkit-spec/blob/main/OPERATIONS.md): passes all 273 shared test cases.
+
+### Changed — what to check when upgrading
+
+- **Validators, parsers and formatters never throw.** Invalid input, including non-text values such as `undefined` or a number, now gives `false` or `null`:
+  - `ccpToRip`, `ccpKey`, `ripKey` return `null` for an invalid account (they threw a `TypeError`);
+  - `formatPhone`, `formatPlate`, `formatRip` return `null` for invalid input (they threw a `TypeError`); `formatRip` now also checks the key;
+  - `getWilaya` returns `null` instead of `undefined`, and `compactId` returns `null` for non-text input.
+  If you relied on the `TypeError`, check for `null` instead.
+- **Calculations throw `DzkitError` with a `code`** (`invalid-amount`, `invalid-option`, `no-rule-for-date`) instead of `RangeError`, and in more cases:
+  - an **unknown IRG regime** now throws `invalid-option`; it was silently treated as retired, giving a lower tax;
+  - a non-number amount (such as the text `"40000"`) throws `invalid-amount`;
+  - amounts in words stop at 999 999 999 999.99 DA (`invalid-amount` above), and `amountToWords` with a language other than `fr` or `ar` throws `invalid-option` (it answered in French);
+  - `calculateIrg`, `grossToNet` and `netToGross` throw `no-rule-for-date` for a date before 2022, whose IRG scale isn't recorded;
+  - `grossToNet` checks that custom rates are between 0 and 1.
+- **`getWilaya` is strict and knows dates.** `'16a'`, `'1e1'`, `'16.0'` and `16.5` no longer match a wilaya (`'16a'` gave Alger). With `{ at }`, a wilaya that didn't exist yet isn't found: 49–58 from 11 December 2019, 59–69 from 4 April 2026, none before 1984. Without `at`, today is used, so all 69 are found as before.
+- **Payroll is computed with whole numbers.** The IRG scale and CNAS contributions are rounded half up to the centime exactly; floating-point arithmetic rounded some exact halves down. About 0.14 % of incomes change, by 0.01 to 0.1 DA, for example a gross of 777.50 DA: CNAS 69.98 DA (was 69.97). Results now match an exact computation on more than 1,000,000 checked cases.
+
+### Added
+
+- `DzkitError` (with `code`) and `toLatinDigits`.
+- **Arabic-Indic digits** (٠١٢… and ۰۱۲…) are accepted by every parser and validator.
+- `{ at }` option (a `Date` or `"YYYY-MM-DD"`) on `calculateIrg`, `irgBreakdown`, `grossToNet`, `netToGross` and `getWilaya`; `parsePlate` now also accepts a `"YYYY-MM-DD"` string.
+- Wilayas 49–69 carry `parent` and `validFrom`.
+- Phone numbers accept `/` as a separator, as in `0771/23/45/67`.
+- The public API is listed explicitly and pinned by a test, so internal helpers can't leak into it.
+
+### Fixed
+
+- Playground: an IRG of zero showed as "-0.00 DA"; Arabic-Indic digits now work in the playground too.
+
+### Security
+
+- The release workflow is split in two jobs: one builds and tests without publishing rights, the other only publishes the tested tarball, with no project install and no cache. Every GitHub Action is pinned to a commit, and npm to an exact version.
+
 ## 0.2.1 — 2026-10-28
 
 ### Fixed

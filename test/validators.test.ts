@@ -47,8 +47,22 @@ describe('wilayas', () => {
     expect(getWilaya(16)?.name).toBe('Alger');
     expect(getWilaya('09')?.nameAr).toBe('البليدة');
     expect(getWilaya(69)?.name).toBe('El Abiodh Sidi Cheikh');
-    expect(getWilaya(70)).toBeUndefined();
-    expect(getWilaya(0)).toBeUndefined();
+    expect(getWilaya(70)).toBeNull();
+    expect(getWilaya(0)).toBeNull();
+  });
+
+  it('rejects codes that are not exactly digits', () => {
+    for (const code of ['16a', '1e1', '16.0', 16.5, '', ' 1 6', null, undefined, true]) expect(getWilaya(code)).toBeNull();
+    expect(getWilaya('016')?.name).toBe('Alger');
+    expect(getWilaya('٠٩')?.name).toBe('Blida');
+  });
+
+  it('knows when each wilaya was created', () => {
+    expect(getWilaya(60, { at: '2026-04-03' })).toBeNull();
+    expect(getWilaya(60, { at: '2026-04-04' })?.name).toBe('Barika');
+    expect(getWilaya(50, { at: '2019-12-10' })).toBeNull();
+    expect(getWilaya(50, { at: new Date('2020-06-01') })?.parent).toBe(1);
+    expect(getWilaya(16, { at: '1983-12-31' })).toBeNull();
   });
 });
 
@@ -112,7 +126,8 @@ describe('phone', () => {
     expect(formatPhone('+213551234567')).toBe('0551 23 45 67');
     expect(formatPhone('0551234567', 'international')).toBe('+213 551 23 45 67');
     expect(formatPhone('021234567')).toBe('021 23 45 67');
-    expect(() => formatPhone('123')).toThrow(TypeError);
+    expect(formatPhone('123')).toBeNull();
+    expect(formatPhone(undefined)).toBeNull();
   });
 });
 

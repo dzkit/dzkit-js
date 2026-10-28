@@ -17,7 +17,7 @@ const check = process.argv.includes('--check');
 const require = createRequire(import.meta.url);
 const spec = require('dzkit-spec/dist/dzkit-spec.json');
 
-const SUPPORTED_SCHEMA = 2;
+const SUPPORTED_SCHEMA = 3;
 if (spec.schema_version !== SUPPORTED_SCHEMA) {
   fail(`dzkit-spec ${spec.version} uses format ${spec.schema_version}; this generator understands ${SUPPORTED_SCHEMA}.`);
 }
@@ -58,7 +58,8 @@ const plates = rule('vehicles.plates');
 const platesNow = current('vehicles.plates');
 const phone = current('telecom.phone');
 const ccp = current('banking.ccp-rip');
-const ids = current('business.nif-nis');
+const nif = current('business.nif');
+const nis = current('business.nis');
 const irg = current('payroll.irg-salary');
 const cnas = current('payroll.cnas');
 
@@ -91,8 +92,13 @@ w();
 w(`export const SPEC_VERSION = ${str(spec.version)};`);
 w();
 w(`// administrative.wilayas (valid from ${wilayas.valid_from}; sources: ${sourcesComment(wilayas)})`);
+w(`/** First day the list applies (dates before it have no version). */`);
+w(`export const WILAYAS_VALID_FROM = ${date(wilayas.valid_from)};`);
 w('export const WILAYA_DATA = [');
-for (const x of wilayas.data) w(`  { code: ${x.code}, name: ${str(x.name_fr)}, nameAr: ${str(x.name_ar)} },`);
+for (const x of wilayas.data) {
+  const extra = x.parent ? `, parent: ${x.parent}, validFrom: ${date(x.valid_from)}` : '';
+  w(`  { code: ${x.code}, name: ${str(x.name_fr)}, nameAr: ${str(x.name_ar)}${extra} },`);
+}
 w('] as const;');
 w();
 w(`// vehicles.plates (sources: ${sourcesComment(platesNow)})`);
@@ -125,12 +131,14 @@ w(`export const RIP_KEY = { modulus: ${ripKey.modulus}, multiplier: ${ripKey.mul
 w(`export const CCP_KEY_WEIGHTS_FROM_RIGHT = [${ccp.data.ccp_key.weights_from_right.join(', ')}] as const;`);
 w(`export const CCP_KEY_MODULUS = ${ccp.data.ccp_key.modulus};`);
 w();
-w(`// business.nif-nis (sources: ${sourcesComment(ids)})`);
-w(`export const NIF_LENGTHS = [${ids.data.nif.lengths.join(', ')}] as const;`);
-w(`export const NIS_LENGTHS = [${ids.data.nis.lengths.join(', ')}] as const;`);
+w(`// business.nif (status ${nif.status}; sources: ${sourcesComment(nif)})`);
+w(`export const NIF_LENGTHS = [${nif.data.lengths.join(', ')}] as const;`);
+w(`// business.nis (status ${nis.status}; sources: ${sourcesComment(nis)})`);
+w(`export const NIS_LENGTHS = [${nis.data.lengths.join(', ')}] as const;`);
 w();
 w(`// payroll.irg-salary (valid from ${irg.valid_from}; sources: ${sourcesComment(irg)})`);
 w(`export const IRG_VALID_FROM = ${date(irg.valid_from)};`);
+w(`export const IRG_REGIMES = [${Object.keys(irg.data.regimes).map(str).join(', ')}] as const;`);
 w('export const IRG_MONTHLY_BRACKETS = [');
 for (const b of irg.data.brackets) w(`  { upTo: ${num(b.up_to)}, rate: ${b.rate} },`);
 w('] as const;');

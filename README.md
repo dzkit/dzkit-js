@@ -89,6 +89,7 @@ import { WILAYAS, getWilaya } from '@dzkit/dzkit-js';
 
 WILAYAS.length;      // 69
 getWilaya(16);       // { code: 16, name: 'Alger', nameAr: 'الجزائر' }
+getWilaya('016');    // same; '16a' or 16.5 give null
 ```
 
 Need communes, dairas or postal codes? Use [geoalgeria](https://www.npmjs.com/package/geoalgeria) alongside this package.
@@ -139,10 +140,41 @@ What it implements (article 104 of the CIDTA, scale from the 2022 finance law, u
 - 40 % abatement on the tax, bounded between 1 000 and 1 500 DA
 - 30 000–35 000 DA: second abatement, `IRG × 137/51 − 27 925/8`
 - Retirees (régime général) and disabled workers, 30 000–42 500 DA: `IRG × 93/61 − 81 213/41`
-- Rounded down to the tenth of a dinar, like the DGI table
+- The scale result is rounded to the centime, then the IRG is rounded down to the tenth of a dinar, like the DGI table. All of it is computed with whole numbers, so there is no floating-point error
 - CNAS: 9 % employee, 25 % + 0.5 % employer (both overridable)
 
 Published reference values from the DGI table are part of the unit tests. Out of scope for now: non-monthly bonuses (10 % flat withholding), exempt allowances, and the training and apprenticeship taxes.
+
+## Input, errors and dates
+
+The same rules apply in every dzkit package, from [dzkit-spec's OPERATIONS.md](https://github.com/dzkit/dzkit-spec/blob/main/OPERATIONS.md):
+
+- **Validators, parsers and formatters never throw.** Pass them whatever a form or a file contains: anything invalid, including `undefined`, a number instead of text or an empty string, gives `false` or `null`.
+- **Arabic-Indic digits are accepted everywhere**: `parsePhone('٠٥٥١٢٣٤٥٦٧')` works, and so do RIPs, plates, NIF/NIS and wilaya codes. `toLatinDigits` is exported if you need it elsewhere.
+- **Calculations throw a `DzkitError` with a `code`** when the request is impossible, rather than guessing:
+
+```ts
+import { calculateIrg, DzkitError } from '@dzkit/dzkit-js';
+
+try {
+  calculateIrg(40_000, { regime: 'retraite' }); // a typo (TypeScript flags it; plain JavaScript reaches here)
+} catch (e) {
+  if (e instanceof DzkitError) e.code; // 'invalid-option'
+}
+```
+
+| Code | When |
+|---|---|
+| `invalid-amount` | negative, not a finite number, or too large (amounts in words stop at 999 999 999 999.99 DA) |
+| `invalid-option` | an unknown regime, language or date format |
+| `no-rule-for-date` | the date is before the first recorded rule (the IRG scale starts in 2022) |
+
+- **Dates:** functions whose rule depends on the day take `{ at }`, a `Date` or `"YYYY-MM-DD"`, and default to today in Algeria: `calculateIrg`, `grossToNet`, `netToGross`, `parsePlate`, `getWilaya`.
+
+```ts
+getWilaya(60, { at: '2026-04-03' }); // null: Barika became a wilaya on 4 April 2026
+getWilaya(60, { at: '2026-04-04' }); // { code: 60, name: 'Barika', nameAr: 'بريكة', parent: 5, validFrom: '2026-04-04' }
+```
 
 ## Sources
 

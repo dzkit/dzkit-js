@@ -49,9 +49,11 @@ After each finance law (loi de finances), dzkit-spec is updated first: its weekl
 
 Releases are published to npm by GitHub Actions (`.github/workflows/release.yml`), with provenance, so npmjs.com shows which commit and workflow built each version. Nobody publishes from their own computer.
 
-1. In a pull request, update the version in `package.json` (following [semantic versioning](https://semver.org)) and move the "Unreleased" notes in `CHANGELOG.md` under that version.
+1. In a pull request, update the version in `package.json` and add a `## X.Y.Z — date` section to `CHANGELOG.md`. Choose the number with the rule shared by every dzkit package: a fix that makes a wrong result right is a patch; anything that changes a correct result, removes something, or turns a result into an error (or the reverse) is a minor version before 1.0 (see [dzkit-spec's GOVERNANCE.md](https://github.com/dzkit/dzkit-spec/blob/main/GOVERNANCE.md)).
 2. Merge it once CI is green.
-3. On GitHub, go to **Releases → Draft a new release**, create the tag `v<version>` on `main` (for example `v0.2.0`), paste the changelog notes, and click **Publish release**.
-4. The Release workflow checks that the tag matches `package.json`, runs the type check, tests and build, and publishes to npm. Follow it in the **Actions** tab.
+3. On GitHub, go to **Releases → Draft a new release**, create the tag `v<version>` on `main` (for example `v0.3.0`), paste the changelog notes, and click **Publish release**.
+4. The Release workflow runs in two jobs. **build** checks that the tag matches `package.json` and `CHANGELOG.md`, runs every check and test, and packs the tarball; it cannot publish. **publish** receives that exact tarball and publishes it; it installs nothing from the project. Follow both in the **Actions** tab.
+
+A published version never changes: a mistake is fixed by a new patch release, never by moving a tag.
 
 Publishing uses npm trusted publishing: no npm token is stored in the repository.

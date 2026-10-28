@@ -44,9 +44,18 @@ describe('RIP', () => {
     expect(formatRip('00799999002311500797')).toBe('007 99999 0023115007 97');
   });
 
-  it('throws on an invalid account number', () => {
-    expect(() => ripKey('12345678901')).toThrow(TypeError);
-    expect(() => ccpToRip('abc')).toThrow(TypeError);
+  it('returns null for an invalid account number, never throws', () => {
+    expect(ripKey('12345678901')).toBeNull();
+    expect(ccpToRip('abc')).toBeNull();
+    expect(ccpToRip(undefined)).toBeNull();
+    expect(ccpKey(null)).toBeNull();
+    expect(formatRip('123')).toBeNull();
+  });
+
+  it('accepts Arabic-Indic digits and an integer account', () => {
+    expect(ccpToRip('٢٣١١٥٠٠٧')).toBe('00799999002311500797');
+    expect(ccpToRip(23115007)).toBe('00799999002311500797');
+    expect(isValidRip('٠٠٧ ٩٩٩٩٩ ٠٠٢٣١١٥٠٠٧ ٩٧')).toBe(true);
   });
 });
 

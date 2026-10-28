@@ -4,6 +4,18 @@
  * "deux cents" / "deux cent un", "mille" invariable, "millions" plural.
  */
 
+import { checkAmount, DzkitError } from '../core';
+
+/** Largest whole number written in words: just under 1 000 billion (OPERATIONS.md). */
+export const MAX_WORDS_NUMBER = 999_999_999_999;
+
+/** Throws invalid-amount unless n is an integer from 0 to MAX_WORDS_NUMBER. */
+export function checkWordsNumber(n: unknown): asserts n is number {
+  if (typeof n !== 'number' || !Number.isSafeInteger(n) || n < 0 || n > MAX_WORDS_NUMBER) {
+    throw new DzkitError('invalid-amount', `Expected an integer from 0 to ${MAX_WORDS_NUMBER}, got ${String(n)}`);
+  }
+}
+
 const UNITS = [
   'zéro', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf',
   'dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize',
@@ -52,7 +64,11 @@ const SCALES = [
 
 /** Integer to French words, e.g. 1_280_000 → "un million deux cent quatre-vingt mille". */
 export function toWordsFr(n: number): string {
-  if (!Number.isSafeInteger(n) || n < 0) throw new RangeError(`Expected a non-negative integer, got ${n}`);
+  checkWordsNumber(n);
+  return wordsFr(n);
+}
+
+function wordsFr(n: number): string {
   if (n === 0) return 'zéro';
   const parts: string[] = [];
   let rest = n;
@@ -61,7 +77,7 @@ export function toWordsFr(n: number): string {
     rest %= s.value;
     if (count > 0) {
       // million / milliard are nouns, so "deux cents millions", "quatre-vingts millions".
-      parts.push(count === 1 ? `un ${s.singular}` : `${toWordsFr(count)} ${s.plural}`);
+      parts.push(count === 1 ? `un ${s.singular}` : `${wordsFr(count)} ${s.plural}`);
     }
   }
   const thousands = Math.floor(rest / 1000);
@@ -96,9 +112,10 @@ function needsDe(n: number): boolean {
 /** Amount in DZD to French words: 1250.5 → "mille deux cent cinquante dinars algériens et cinquante centimes". */
 export function amountToWordsFr(amount: number, currency: FrCurrency = DINAR_FR): string {
   const { whole, cents } = splitAmount(amount);
+  checkWordsNumber(whole);
   const noun = whole >= 2 ? currency.plural : currency.singular;
-  let out = `${toWordsFr(whole)} ${needsDe(whole) ? 'de ' : ''}${noun}`;
-  if (cents > 0) out += ` et ${toWordsFr(cents)} ${cents >= 2 ? currency.subPlural : currency.subSingular}`;
+  let out = `${wordsFr(whole)} ${needsDe(whole) ? 'de ' : ''}${noun}`;
+  if (cents > 0) out += ` et ${wordsFr(cents)} ${cents >= 2 ? currency.subPlural : currency.subSingular}`;
   return out;
 }
 
@@ -113,17 +130,17 @@ export function splitAmount(amount: number): { whole: number; cents: number } {
  * for 1.005, because computers store decimals in binary.
  */
 export function toCents(amount: number): number {
-  if (!Number.isFinite(amount) || amount < 0) throw new RangeError(`Expected a non-negative amount, got ${amount}`);
+  checkAmount(amount);
   // The shortest decimal string that represents the number, e.g. "1.005".
   let text = String(amount);
   if (/e/i.test(text)) {
-    if (amount >= 1) throw new RangeError(`Amount too large: ${amount}`);
+    if (amount >= 1) throw new DzkitError('invalid-amount', `Amount too large: ${amount}`);
     text = amount.toFixed(20);
   }
   const [int = '0', frac = ''] = text.split('.');
   const digits = (frac + '000').slice(0, 3);
   let cents = Number(int) * 100 + Number(digits.slice(0, 2));
   if (Number(digits[2]) >= 5) cents += 1;
-  if (!Number.isSafeInteger(cents)) throw new RangeError(`Amount too large: ${amount}`);
+  if (!Number.isSafeInteger(cents)) throw new DzkitError('invalid-amount', `Amount too large: ${amount}`);
   return cents;
 }

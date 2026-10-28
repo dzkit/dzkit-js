@@ -2,67 +2,103 @@ name: Release
 
 # Publishes the package to npm when a GitHub release is published.
 #
-# Authentication:
-#   - Normally: npm trusted publishing. GitHub proves its identity to npm with a
-#     short-lived OIDC token; no secret is stored. Configure it once on npmjs.com:
-#     package settings → Trusted publishing → GitHub Actions →
-#     organization "dzkit", repository "dzkit-js", workflow "release.yml".
-#   - First release only: npm can't create a new package through trusted publishing,
-#     so add a short-lived token as the NPM_TOKEN secret, publish once, then delete it.
+# Two jobs, so the job that can publish runs as little code as possible:
+#   build    checks the tag, installs, runs every check and test, packs the tarball.
+#            It has no publishing rights.
+#   publish  receives that exact tarball and publishes it. It installs nothing from
+#            the project and uses no cache.
+#
+# Authentication: npm trusted publishing. GitHub proves its identity to npm with a
+# short-lived OIDC token; no secret is stored. Configured on npmjs.com:
+# @dzkit/dzkit-js → Settings → Trusted publishing → GitHub Actions →
+# organization "dzkit", repository "dzkit-js", workflow "release.yml".
 #
 # Provenance is attached, so npmjs.com shows which commit and workflow built the package.
+# Actions are pinned to commits (the comment gives the version) so a moved tag can't
+# change what runs here.
 on:
   release:
     types: [published]
 
 permissions:
   contents: read
-  id-token: write # needed for trusted publishing and provenance
 
 concurrency:
   group: release
   cancel-in-progress: false
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org
-          cache: npm
-
-      # Trusted publishing needs npm 11.5.1 or later.
-      - run: npm install -g npm@^11.5.1 && npm --version
 
       - name: Check that the release tag matches package.json
         run: |
           tag="${GITHUB_REF_NAME#v}"
+          name=$(node -p "require('./package.json').name")
           version=$(node -p "require('./package.json').version")
           if [ "$tag" != "$version" ]; then
             echo "::error::The release tag is ${GITHUB_REF_NAME} but package.json says ${version}. Update package.json (and CHANGELOG.md) in a pull request first, then create the release v${version}."
             exit 1
           fi
-          name=$(node -p "require('./package.json').name")
+          if ! grep -q "^## ${version} " CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## ${version}' section."
+            exit 1
+          fi
           if npm view "${name}@${version}" version >/dev/null 2>&1; then
             echo "::error::${name}@${version} is already on npm. Bump the version in package.json first."
             exit 1
           fi
 
       - run: npm ci
+      - run: npm run generate:check
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
 
-      # Runs the type check, all tests and the build first (prepublishOnly).
+      - name: Pack the tarball that will be published
+        run: |
+          npm pack --ignore-scripts
+          ls -l *.tgz
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: package
+          path: '*.tgz'
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # trusted publishing and provenance
+    steps:
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24
+
+      # Trusted publishing needs npm 11.5.1 or later. Pinned to an exact version.
+      - run: npm install -g npm@11.21.1 && npm --version
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: package
+
       - name: Publish to npm
-        run: npm publish --provenance --access public
-        env:
-          # Empty once trusted publishing is configured; only set for the first release.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish ./*.tgz --provenance --access public
 
       - name: Summary
         run: |
-          name=$(node -p "require('./package.json').name")
-          version=$(node -p "require('./package.json').version")
+          file=$(ls *.tgz)
+          name=$(tar -xOzf "$file" package/package.json | node -p "JSON.parse(require('fs').readFileSync(0)).name")
+          version=$(tar -xOzf "$file" package/package.json | node -p "JSON.parse(require('fs').readFileSync(0)).version")
           echo "Published [${name}@${version}](https://www.npmjs.com/package/${name}/v/${version}) with provenance." >> "$GITHUB_STEP_SUMMARY"

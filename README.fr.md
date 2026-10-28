@@ -63,6 +63,12 @@ calculateIrg(40_000, { regime: 'retired' }); // 2745.4
 
 **CNAS** : 9 % salarié, 25 % + 0,5 % employeur (modifiables).
 
+**Saisies, erreurs et dates** (règles communes à tous les paquets dzkit, voir [OPERATIONS.md](https://github.com/dzkit/dzkit-spec/blob/main/OPERATIONS.md)) :
+- les fonctions de validation et de lecture ne lèvent jamais d'erreur : une valeur invalide, même `undefined` ou un nombre au lieu d'un texte, donne `false` ou `null` ;
+- les chiffres arabes orientaux (٠١٢…) sont acceptés partout ;
+- les calculs lèvent une `DzkitError` avec un `code` (`invalid-amount`, `invalid-option`, `no-rule-for-date`) au lieu de deviner, par exemple pour un régime inconnu ;
+- `calculateIrg`, `grossToNet`, `parsePlate` et `getWilaya` acceptent `{ at }` : une `Date` ou `"AAAA-MM-JJ"`.
+
 ## Sources
 
 Chaque règle repose sur un texte officiel, classé selon la hiérarchie des textes juridiques algériens. Les règles, leurs sources et les preuves de chacune sont tenues dans [dzkit-spec](https://github.com/dzkit/dzkit-spec), commun à tous les paquets dzkit ; voir son [rapport de confiance](https://github.com/dzkit/dzkit-spec/blob/main/TRUST.md).

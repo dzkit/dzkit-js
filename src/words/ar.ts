@@ -15,7 +15,7 @@
  * scale words inside a number (مائتا ألف) and to the whole number before the currency.
  */
 
-import { toCents } from './fr';
+import { checkWordsNumber, toCents } from './fr';
 
 const ONES = ['', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة', 'عشرة'];
 const TEENS: Record<number, string> = {
@@ -105,7 +105,7 @@ function wordsAr(n: number, construct: boolean): string {
 
 /** Integer to Arabic words, e.g. 2500 → "ألفان وخمسمائة", 200000 → "مائتا ألف". */
 export function toWordsAr(n: number): string {
-  if (!Number.isSafeInteger(n) || n < 0) throw new RangeError(`Expected a non-negative integer, got ${n}`);
+  checkWordsNumber(n);
   return wordsAr(n, false);
 }
 
@@ -144,6 +144,7 @@ function amountPart(count: number, noun: ArNoun, adjective?: ArNoun): string {
 export function amountToWordsAr(amount: number, currency: ArCurrency = DINAR_AR): string {
   const totalCents = toCents(amount);
   const whole = Math.floor(totalCents / 100);
+  checkWordsNumber(whole);
   const cents = totalCents % 100;
   let out = amountPart(whole, currency.noun, currency.adjective);
   if (cents > 0) out += ` و${amountPart(cents, currency.subNoun)}`;
