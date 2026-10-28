@@ -248,6 +248,80 @@ const T = {
   },
 };
 
+// Strings added with the redesign, merged into T above.
+const EXTRA = {
+  fr: {
+    lead: 'Une bibliothèque open source pour vérifier, formater et calculer ce que chaque application algérienne finit par réécrire.',
+    skip: 'Aller aux outils',
+    plateTitle: 'Plaque',
+    omniLabel: 'Collez n’importe quel numéro algérien',
+    omniOpen: 'Ouvrir l’outil',
+    kindCcp: 'Numéro de CCP',
+    kindRip: 'RIP valide',
+    kindRipBad: 'RIP avec une clé incorrecte',
+    kindPhone: (op) => (op ? `Téléphone mobile, ${op}` : 'Téléphone'),
+    kindPlate: 'Plaque d’immatriculation',
+    kindPlateSoon: 'Plaque d’une nouvelle wilaya (à partir de 2027)',
+    kindAmount: 'Montant en dinars',
+    kindNif: 'NIF (format valide)',
+    kindNis: 'NIS (format valide)',
+    kindUnknown: 'Rien de reconnu pour l’instant',
+    unknownDetail: 'Essayez un numéro de téléphone, un CCP ou un RIP, une plaque, un montant ou un NIF.',
+    chipWrongKey: 'Clé fausse',
+    themeAuto: 'Auto',
+    themeLight: 'Clair',
+    themeDark: 'Sombre',
+    idsCount: (n) => `${n} chiffres`,
+  },
+  ar: {
+    lead: 'مكتبة مفتوحة المصدر للتحقق والتنسيق والحساب، لكل ما يعيد كل تطبيق جزائري كتابته.',
+    skip: 'الانتقال إلى الأدوات',
+    plateTitle: 'لوحة الترقيم',
+    omniLabel: 'الصق أي رقم جزائري',
+    omniOpen: 'فتح الأداة',
+    kindCcp: 'رقم حساب بريدي جاري',
+    kindRip: 'RIP صحيح',
+    kindRipBad: 'RIP بمفتاح خاطئ',
+    kindPhone: (op) => (op ? `هاتف نقال، ${op}` : 'هاتف'),
+    kindPlate: 'لوحة ترقيم',
+    kindPlateSoon: 'لوحة ولاية جديدة (ابتداء من 2027)',
+    kindAmount: 'مبلغ بالدينار',
+    kindNif: 'رقم جبائي (شكل صحيح)',
+    kindNis: 'رقم إحصائي (شكل صحيح)',
+    kindUnknown: 'لم يتم التعرف على شيء بعد',
+    unknownDetail: 'جرّب رقم هاتف، أو حسابا بريديا أو RIP، أو لوحة ترقيم، أو مبلغا، أو رقما جبائيا.',
+    chipWrongKey: 'مفتاح خاطئ',
+    themeAuto: 'تلقائي',
+    themeLight: 'فاتح',
+    themeDark: 'داكن',
+    idsCount: (n) => `${n} رقما`,
+  },
+  en: {
+    lead: 'An open-source library to check, format and calculate the things every Algerian app ends up rewriting.',
+    skip: 'Skip to the tools',
+    plateTitle: 'Licence plate',
+    omniLabel: 'Paste any Algerian number',
+    omniOpen: 'Open the tool',
+    kindCcp: 'CCP account number',
+    kindRip: 'Valid RIP',
+    kindRipBad: 'RIP with a wrong key',
+    kindPhone: (op) => (op ? `Mobile phone, ${op}` : 'Phone number'),
+    kindPlate: 'Licence plate',
+    kindPlateSoon: 'Plate from a new wilaya (from 2027)',
+    kindAmount: 'Amount in dinars',
+    kindNif: 'NIF (valid format)',
+    kindNis: 'NIS (valid format)',
+    kindUnknown: 'Nothing recognised yet',
+    unknownDetail: 'Try a phone number, a CCP or RIP, a licence plate, an amount or a NIF.',
+    chipWrongKey: 'Wrong key',
+    themeAuto: 'Auto',
+    themeLight: 'Light',
+    themeDark: 'Dark',
+    idsCount: (n) => `${n} digits`,
+  },
+};
+for (const l of Object.keys(T)) Object.assign(T[l], EXTRA[l]);
+
 const CATEGORY = {
   fr: ['', 'Véhicule de tourisme', 'Camion', 'Camionnette', 'Autocar ou autobus', 'Tracteur routier', 'Autre tracteur', 'Véhicule spécial', 'Remorque ou semi-remorque', 'Motocyclette'],
   ar: ['', 'سيارة سياحية', 'شاحنة', 'شاحنة صغيرة', 'حافلة', 'جرار طريق', 'جرار آخر', 'مركبة خاصة', 'مقطورة أو نصف مقطورة', 'دراجة نارية'],
@@ -255,6 +329,7 @@ const CATEGORY = {
 };
 
 const LOCALE = { fr: 'fr-DZ', ar: 'ar-DZ', en: 'en-GB' };
+const AFTER_REFORM = new Date('2027-06-01');
 
 let lang = 'fr';
 const t = (key, ...args) => {
@@ -265,91 +340,213 @@ const t = (key, ...args) => {
 /* ---------- Helpers ---------- */
 
 const $ = (sel) => document.querySelector(sel);
+const el = (tag, cls, text) => {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+};
 
-function money(n) {
-  const s = new Intl.NumberFormat(LOCALE[lang], {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+function num(n, digits = 2) {
+  return new Intl.NumberFormat(LOCALE[lang], {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
     numberingSystem: 'latn',
   }).format(n);
-  return `${s} ${t('da')}`;
 }
 
-function setStatus(el, kind, text) {
-  el.textContent = text;
-  el.className = `status ${kind}`;
+const money = (n) => `${num(n)} ${t('da')}`;
+
+function pop(node) {
+  node.classList.remove('pop');
+  void node.offsetWidth;
+  node.classList.add('pop');
 }
 
-function facts(el, rows) {
-  el.replaceChildren(
+function setStatus(node, kind, text) {
+  node.textContent = text;
+  node.className = `status ${kind}`;
+}
+
+function facts(node, rows) {
+  node.replaceChildren(
     ...rows.flatMap(([k, v, ltr]) => {
-      const dt = document.createElement('dt');
-      dt.textContent = k;
-      const dd = document.createElement('dd');
-      dd.textContent = v;
+      const dd = el('dd', '', v);
       if (ltr) dd.dir = 'ltr';
-      return [dt, dd];
+      return [el('dt', '', k), dd];
     }),
   );
 }
 
-function code(el, lines) {
-  el.replaceChildren(
+function code(node, lines) {
+  node.replaceChildren(
     ...lines.flatMap((line, i) => {
-      const nodes = [];
       const m = /^(.*?)(\s*\/\/.*)?$/.exec(line);
-      nodes.push(document.createTextNode(m[1]));
-      if (m[2]) {
-        const c = document.createElement('span');
-        c.className = 'c';
-        c.textContent = m[2];
-        nodes.push(c);
-      }
-      if (i < lines.length - 1) nodes.push(document.createTextNode('\n'));
-      return nodes;
+      const out = [document.createTextNode(m[1])];
+      if (m[2]) out.push(el('span', 'c', m[2]));
+      if (i < lines.length - 1) out.push(document.createTextNode('\n'));
+      return out;
     }),
   );
 }
 
 const q = (s) => `'${String(s).replace(/'/g, "\\'")}'`;
-const parseAmount = (s) => Number(String(s).replace(/\s/g, '').replace(',', '.'));
+const parseAmount = (s) => Number(String(s).replace(/\s|da|dzd|دج/gi, '').replace(',', '.'));
+const plateYear = (yy) => (Number(yy) <= (new Date().getFullYear() % 100) + 1 ? '20' : '19') + yy;
+const wilayaName = (w) => (lang === 'ar' ? w.nameAr : w.name);
+const list = (...items) => items.join(lang === 'ar' ? '، ' : ', ');
 
-/* ---------- RIP ---------- */
+/* ---------- Document renderers (shared by the hero and the tools) ---------- */
+
+function ripStrip(node, rip, state = 'ok') {
+  node.className = `rip-strip${state === 'ok' ? '' : ` ${state}`}`;
+  node.replaceChildren(
+    el('span', 'rip-tag', 'RIP'),
+    el('span', '', rip.slice(0, 3)),
+    el('span', '', rip.slice(3, 8)),
+    el('span', '', rip.slice(8, 18)),
+    el('span', 'rip-key', rip.slice(18, 20)),
+  );
+  return node;
+}
+
+function plateDoc(node, text, state = 'ok') {
+  node.className = `plate${state === 'ok' ? '' : ` ${state}`}`;
+  node.textContent = text;
+  return node;
+}
+
+/* ---------- Hero: recognise whatever is pasted ---------- */
+
+function detect(raw) {
+  const s = raw.trim();
+  if (!s) return null;
+  const digits = s.replace(/[\s.\-_/]/g, '');
+
+  // A plate is written as exactly three groups (12345-126-16), so check it before
+  // phone numbers, which a landline in that shape could otherwise match.
+  const plate = parsePlate(s) ?? parsePlate(s, { at: AFTER_REFORM });
+  if (plate && /^\d{1,6}[\s-]+\d{3}[\s-]+\d{2}$/.test(s)) return { kind: 'plate', plate, soon: !parsePlate(s) };
+
+  const phone = parsePhone(s);
+  if (phone) return { kind: 'phone', phone };
+
+  if (/^\d{20}$/.test(digits) && digits.startsWith('00799999')) {
+    return { kind: 'rip', rip: digits, valid: parseRip(digits) !== null };
+  }
+
+  if (/^\d{15}$|^\d{20}$/.test(digits)) return { kind: 'nif', id: digits };
+  if (/^\d{18}$/.test(digits)) return { kind: 'nis', id: digits };
+
+  if (/^\d{1,10}$/.test(digits) && !/[,]|da|دج/i.test(s)) return { kind: 'ccp', ccp: digits };
+
+  const amount = parseAmount(s);
+  if (Number.isFinite(amount) && amount >= 0 && amount < 1e12 && /\d/.test(s)) return { kind: 'amount', amount };
+
+  return null;
+}
+
+function renderOmni() {
+  const raw = $('#omni-input').value;
+  const r = detect(raw);
+  const kind = $('#omni-kind');
+  const doc = $('#omni-doc');
+  const detail = $('#omni-detail');
+  const open = $('#omni-open');
+  kind.className = 'omni-kind';
+  open.hidden = false;
+
+  const goTo = (id, value) => {
+    open.href = `#${id}`;
+    open.onclick = () => {
+      const input = $(`#${id}-input`);
+      if (input && value !== undefined) {
+        input.value = value;
+        input.dispatchEvent(new Event('input'));
+      }
+    };
+  };
+
+  if (!r) {
+    kind.textContent = t('kindUnknown');
+    kind.className = 'omni-kind bad';
+    doc.replaceChildren();
+    detail.textContent = t('unknownDetail');
+    open.hidden = true;
+    return;
+  }
+
+  if (r.kind === 'phone') {
+    kind.textContent = t('kindPhone', r.phone.operator);
+    const card = el('div', 'phone-card');
+    card.dir = 'ltr';
+    card.append(el('span', 'phone-number', formatPhone(raw, 'international')));
+    doc.replaceChildren(card);
+    detail.textContent = list(formatPhone(raw), r.phone.e164);
+    goTo('phone', raw.trim());
+  } else if (r.kind === 'rip' || r.kind === 'ccp') {
+    const rip = r.kind === 'rip' ? r.rip : ccpToRip(r.ccp);
+    kind.textContent = r.kind === 'ccp' ? t('kindCcp') : r.valid ? t('kindRip') : t('kindRipBad');
+    if (r.kind === 'rip' && !r.valid) kind.className = 'omni-kind bad';
+    const strip = ripStrip(el('div'), rip, r.kind === 'rip' && !r.valid ? 'invalid' : 'ok');
+    strip.dir = 'ltr';
+    doc.replaceChildren(strip);
+    const account = rip.slice(8, 18);
+    detail.textContent =
+      r.kind === 'rip' && !r.valid
+        ? t('ripBadKey', ccpToRip(account).slice(18))
+        : list(`${t('ripCcpKey')} ${ccpKey(account)}`, `${t('ripKey')} ${rip.slice(18)}`);
+    goTo('rip', r.kind === 'rip' ? r.rip : r.ccp);
+  } else if (r.kind === 'plate') {
+    kind.textContent = r.soon ? t('kindPlateSoon') : t('kindPlate');
+    const p = r.plate;
+    const plate = plateDoc(el('div'), formatPlate(raw, { at: AFTER_REFORM }), r.soon ? 'pending' : 'ok');
+    plate.dir = 'ltr';
+    doc.replaceChildren(plate);
+    detail.textContent = list(`${wilayaName(p.wilaya)} (${String(p.wilaya.code).padStart(2, '0')})`, CATEGORY[lang][p.category], plateYear(p.year));
+    goTo('plate', raw.trim());
+  } else if (r.kind === 'amount') {
+    kind.textContent = t('kindAmount');
+    const words = el('p', 'omni-words', lang === 'ar' ? amountToWordsAr(r.amount) : amountToWordsFr(r.amount));
+    words.style.margin = '0';
+    words.style.fontSize = '1.15rem';
+    words.style.fontWeight = '400';
+    words.lang = lang === 'ar' ? 'ar' : 'fr';
+    doc.replaceChildren(words);
+    detail.textContent = money(r.amount);
+    goTo('words', String(r.amount));
+  } else {
+    kind.textContent = r.kind === 'nif' ? t('kindNif') : t('kindNis');
+    const n = el('span', 'id-number', r.id.replace(/(\d{3})(?=\d)/g, '$1 '));
+    n.dir = 'ltr';
+    doc.replaceChildren(n);
+    detail.textContent = t('idsCount', r.id.length);
+    goTo('ids', r.id);
+  }
+  pop(doc);
+}
+
+/* ---------- RIP tool ---------- */
 
 function renderRip() {
   const raw = $('#rip-input').value;
   const digits = raw.replace(/[\s.\-_/]/g, '');
   const strip = $('#rip-strip');
   const status = $('#rip-status');
-  const parts = Object.fromEntries([...strip.querySelectorAll('[data-part]')].map((e) => [e.dataset.part, e]));
-  strip.classList.remove('invalid');
-
-  const show = (rip) => {
-    parts.bank.textContent = rip.slice(0, 3);
-    parts.branch.textContent = rip.slice(3, 8);
-    parts.account.textContent = rip.slice(8, 18);
-    parts.key.textContent = rip.slice(18, 20);
-  };
 
   if (/^\d{1,10}$/.test(digits)) {
     const rip = ccpToRip(digits);
-    show(rip);
+    ripStrip(strip, rip);
     facts($('#rip-facts'), [
       [t('ripAccount'), digits.replace(/^0+(?=\d)/, ''), true],
       [t('ripCcpKey'), ccpKey(digits), true],
       [t('ripKey'), rip.slice(18), true],
     ]);
-    code($('#rip-code'), [
-      `ccpToRip(${q(digits)});  // ${q(rip)}`,
-      `ccpKey(${q(digits)});    // ${q(ccpKey(digits))}`,
-    ]);
+    code($('#rip-code'), [`ccpToRip(${q(digits)});  // ${q(rip)}`, `ccpKey(${q(digits)});    // ${q(ccpKey(digits))}`]);
     setStatus(status, 'ok', t('ripOkBuilt'));
-    return;
-  }
-
-  if (/^\d{20}$/.test(digits)) {
-    show(digits);
+  } else if (/^\d{20}$/.test(digits)) {
     const parsed = parseRip(digits);
+    ripStrip(strip, digits, parsed ? 'ok' : 'invalid');
     code($('#rip-code'), [`isValidRip(${q(raw.trim())});  // ${parsed !== null}`]);
     if (parsed) {
       facts($('#rip-facts'), [
@@ -358,36 +555,35 @@ function renderRip() {
       ]);
       setStatus(status, 'ok', t('ripOkValid'));
     } else {
-      strip.classList.add('invalid');
       facts($('#rip-facts'), []);
-      if (!digits.startsWith('00799999')) setStatus(status, 'bad', t('ripBadPrefix'));
-      else setStatus(status, 'bad', t('ripBadKey', ccpToRip(digits.slice(8, 18)).slice(18)));
+      setStatus(status, 'bad', digits.startsWith('00799999') ? t('ripBadKey', ccpToRip(digits.slice(8, 18)).slice(18)) : t('ripBadPrefix'));
     }
-    return;
+  } else {
+    ripStrip(strip, '00799999' + '0'.repeat(12), 'empty');
+    facts($('#rip-facts'), []);
+    code($('#rip-code'), [`ccpToRip(${q(raw.trim())});  // TypeError`]);
+    setStatus(status, 'bad', t('ripBadFormat'));
   }
-
-  strip.classList.add('invalid');
-  show('00799999' + '0'.repeat(12));
-  facts($('#rip-facts'), []);
-  code($('#rip-code'), [`ccpToRip(${q(raw.trim())});  // TypeError`]);
-  setStatus(status, 'bad', t('ripBadFormat'));
 }
 
-/* ---------- Phone ---------- */
+/* ---------- Phone tool ---------- */
 
 function renderPhone() {
   const raw = $('#phone-input').value;
   const p = parsePhone(raw);
   const status = $('#phone-status');
   if (!p) {
+    $('#phone-op').textContent = '';
     $('#phone-big').textContent = raw.trim() || '—';
+    $('#phone-card').style.opacity = '0.45';
     facts($('#phone-facts'), []);
     code($('#phone-code'), [`parsePhone(${q(raw.trim())});  // null`]);
     setStatus(status, 'bad', t('phoneBad'));
     return;
   }
-  const intl = formatPhone(raw, 'international');
-  $('#phone-big').textContent = intl;
+  $('#phone-card').style.opacity = '';
+  $('#phone-op').textContent = p.operator ?? t(p.type);
+  $('#phone-big').textContent = formatPhone(raw, 'international');
   const rows = [[t('phoneType'), t(p.type)]];
   if (p.operator) rows.push([t('phoneOperator'), p.operator]);
   if (p.areaCode) rows.push([t('phoneArea'), `0${p.areaCode}`, true]);
@@ -402,9 +598,7 @@ function renderPhone() {
   setStatus(status, 'ok', t('phoneOk'));
 }
 
-/* ---------- Plate ---------- */
-
-const AFTER_REFORM = new Date('2027-06-01');
+/* ---------- Plate tool ---------- */
 
 function renderPlate() {
   const raw = $('#plate-input').value;
@@ -412,57 +606,54 @@ function renderPlate() {
   const status = $('#plate-status');
   const p = parsePlate(raw);
   const later = p ? null : parsePlate(raw, { at: AFTER_REFORM });
+  const plate = p ?? later;
 
-  if (p || later) {
-    const plate = p ?? later;
-    view.classList.toggle('invalid', !p);
-    $('#plate-text').textContent = formatPlate(raw, p ? undefined : { at: AFTER_REFORM });
-    const name = lang === 'ar' ? plate.wilaya.nameAr : plate.wilaya.name;
+  if (plate) {
+    plateDoc(view, formatPlate(raw, { at: AFTER_REFORM }), p ? 'ok' : 'pending');
     facts($('#plate-facts'), [
-      [t('plateWilaya'), `${name} (${String(plate.wilaya.code).padStart(2, '0')})`],
+      [t('plateWilaya'), `${wilayaName(plate.wilaya)} (${String(plate.wilaya.code).padStart(2, '0')})`],
       [t('plateCategory'), `${CATEGORY[lang][plate.category]} (${plate.category})`],
-      [t('plateYear'), (Number(plate.year) <= (new Date().getFullYear() % 100) + 1 ? '20' : '19') + plate.year, true],
+      [t('plateYear'), plateYear(plate.year), true],
     ]);
     code($('#plate-code'), [
       `const p = parsePlate(${q(raw.trim())});`,
       ...(p
         ? [`p.wilaya.name;  // ${q(plate.wilaya.name)}`, `p.category;     // ${plate.category}`, `p.year;         // ${q(plate.year)}`]
-        : [`// null today; valid from 1 January 2027:`, `parsePlate(${q(raw.trim())}, { at: new Date('2027-01-01') });`]),
+        : ['// null today; valid from 1 January 2027:', `parsePlate(${q(raw.trim())}, { at: new Date('2027-01-01') });`]),
     ]);
     if (p) setStatus(status, 'ok', t('plateOk'));
     else setStatus(status, 'bad', t('plateSoon', plate.wilaya.code));
     return;
   }
 
-  view.classList.add('invalid');
-  $('#plate-text').textContent = raw.trim() || '00000-000-00';
+  plateDoc(view, raw.trim() || '00000-000-00', 'invalid');
   facts($('#plate-facts'), []);
   code($('#plate-code'), [`parsePlate(${q(raw.trim())});  // null`]);
   setStatus(status, 'bad', t('plateBad'));
 }
 
-/* ---------- Amount in words ---------- */
+/* ---------- Amount in words tool ---------- */
 
 function renderWords() {
   const raw = $('#words-input').value;
   const n = parseAmount(raw);
   const status = $('#words-status');
   if (!raw.trim() || !Number.isFinite(n) || n < 0 || n > 999_999_999_999) {
+    $('#cheque-amount').textContent = '—';
     $('#words-fr').textContent = '—';
     $('#words-ar').textContent = '—';
     code($('#words-code'), [`amountToWords(${raw.trim() || 'NaN'});  // RangeError`]);
     setStatus(status, 'bad', t('wordsBad'));
     return;
   }
-  const fr = amountToWordsFr(n);
-  const ar = amountToWordsAr(n);
-  $('#words-fr').textContent = fr;
-  $('#words-ar').textContent = ar;
+  $('#cheque-amount').textContent = `${num(n)} DA`;
+  $('#words-fr').textContent = amountToWordsFr(n);
+  $('#words-ar').textContent = amountToWordsAr(n);
   code($('#words-code'), [`amountToWords(${n}, 'fr');`, `amountToWords(${n}, 'ar');`]);
   setStatus(status, '', '');
 }
 
-/* ---------- Salary ---------- */
+/* ---------- Salary tool ---------- */
 
 let salaryMode = 'gross';
 
@@ -472,9 +663,12 @@ function renderSalary() {
   const regime = $('#salary-regime').value;
   const status = $('#salary-status');
   const cells = ['gross', 'cnas', 'taxable', 'irg', 'net'].map((k) => $(`#ps-${k}`));
+  const [segNet, segIrg, segCnas] = ['.seg-net', '.seg-irg', '.seg-cnas'].map((s) => $(s));
 
   if (!raw.trim() || !Number.isFinite(n) || n <= 0 || n > 100_000_000) {
     cells.forEach((c) => (c.textContent = '—'));
+    $('#ps-net-big').textContent = '—';
+    [segNet, segIrg, segCnas].forEach((s) => (s.style.width = '0'));
     $('#ps-employer').textContent = '';
     code($('#salary-code'), [`grossToNet(${raw.trim() || 'NaN'});  // RangeError`]);
     setStatus(status, 'bad', t('salaryBad'));
@@ -489,6 +683,10 @@ function renderSalary() {
     c.textContent = values[i] < 0 ? `− ${money(-values[i])}` : money(values[i]);
     c.dir = 'ltr';
   });
+  $('#ps-net-big').textContent = money(r.net);
+  segNet.style.width = `${(r.net / r.gross) * 100}%`;
+  segIrg.style.width = `${(r.irg / r.gross) * 100}%`;
+  segCnas.style.width = `${(r.cnasEmployee / r.gross) * 100}%`;
   $('#ps-employer').textContent = t('employer', money(r.cnasEmployer), money(r.employerCost));
   code($('#salary-code'), [
     salaryMode === 'gross' ? `grossToNet(${n}${optsCode});` : `netToGross(${n}${optsCode});`,
@@ -507,14 +705,17 @@ function setSalaryMode(mode) {
   renderSalary();
 }
 
-/* ---------- NIF / NIS ---------- */
+/* ---------- NIF / NIS tool ---------- */
 
 let idType = 'nif';
 
 function renderIds() {
   const raw = $('#ids-input').value;
+  const digits = compactId(raw);
   const ok = idType === 'nif' ? isValidNif(raw) : isValidNis(raw);
-  $('#ids-big').textContent = compactId(raw) || '—';
+  $('#ids-type').textContent = idType.toUpperCase();
+  $('#ids-big').textContent = digits ? digits.replace(/(\d{3})(?=\d)/g, '$1 ') : '—';
+  $('#ids-count').textContent = /^\d+$/.test(digits) ? t('idsCount', digits.length) : '';
   const fn = idType === 'nif' ? 'isValidNif' : 'isValidNis';
   code($('#ids-code'), [`${fn}(${q(raw.trim())});  // ${ok}`]);
   setStatus($('#ids-status'), ok ? 'ok' : 'bad', t(`${idType}${ok ? 'Ok' : 'Bad'}`));
@@ -526,9 +727,30 @@ function setIdType(type) {
   renderIds();
 }
 
+/* ---------- Theme ---------- */
+
+const THEMES = ['auto', 'light', 'dark'];
+let theme = 'auto';
+
+function applyTheme(next) {
+  theme = THEMES.includes(next) ? next : 'auto';
+  if (theme === 'auto') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = theme;
+  const label = t(`theme${theme[0].toUpperCase()}${theme.slice(1)}`);
+  $('#theme-label').textContent = label;
+  $('#theme-toggle').setAttribute('aria-label', label);
+  try {
+    if (theme === 'auto') localStorage.removeItem('dzkit-theme');
+    else localStorage.setItem('dzkit-theme', theme);
+  } catch {
+    /* storage unavailable */
+  }
+}
+
 /* ---------- Language ---------- */
 
 function renderAll() {
+  renderOmni();
   renderRip();
   renderPhone();
   renderPlate();
@@ -541,21 +763,23 @@ function setLang(next) {
   lang = T[next] ? next : 'fr';
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-  document.querySelectorAll('[data-i18n]').forEach((el) => {
-    el.textContent = t(el.dataset.i18n);
+  document.querySelectorAll('[data-i18n]').forEach((node) => {
+    node.textContent = t(node.dataset.i18n);
   });
   document.querySelectorAll('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
   try {
     localStorage.setItem('dzkit-lang', lang);
   } catch {
-    /* storage unavailable: the choice just isn't remembered */
+    /* storage unavailable */
   }
+  applyTheme(theme);
   renderAll();
 }
 
 /* ---------- Wiring ---------- */
 
-$('#rip-input').addEventListener('input', renderRip);
+$('#omni-input').addEventListener('input', renderOmni);
+$('#rip-input').addEventListener('input', () => (renderRip(), pop($('#rip-strip'))));
 $('#phone-input').addEventListener('input', renderPhone);
 $('#plate-input').addEventListener('input', renderPlate);
 $('#words-input').addEventListener('input', renderWords);
@@ -565,6 +789,17 @@ $('#ids-input').addEventListener('input', renderIds);
 document.querySelectorAll('#salary [data-mode]').forEach((b) => b.addEventListener('click', () => setSalaryMode(b.dataset.mode)));
 document.querySelectorAll('#ids [data-id]').forEach((b) => b.addEventListener('click', () => setIdType(b.dataset.id)));
 document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
+$('#theme-toggle').addEventListener('click', () => applyTheme(THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length]));
+
+// Example chips fill their input (the hero's own input when no target is given).
+document.querySelectorAll('.chip[data-fill]').forEach((chip) =>
+  chip.addEventListener('click', () => {
+    const input = $(chip.dataset.target || '#omni-input');
+    input.value = chip.dataset.fill;
+    input.dispatchEvent(new Event('input'));
+    input.focus();
+  }),
+);
 
 document.querySelectorAll('[data-copy]').forEach((btn) =>
   btn.addEventListener('click', async () => {
@@ -578,11 +813,32 @@ document.querySelectorAll('[data-copy]').forEach((btn) =>
   }),
 );
 
-let saved = null;
+// Highlight the tool currently on screen in the sticky navigation.
+const navLinks = [...document.querySelectorAll('.toolnav a')];
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      navLinks.forEach((a) => a.setAttribute('aria-current', String(a.hash === `#${entry.target.id}`)));
+      const active = navLinks.find((a) => a.hash === `#${entry.target.id}`);
+      const bar = active?.parentElement;
+      if (bar && document.documentElement.dir === 'ltr' && bar.scrollWidth > bar.clientWidth) {
+        bar.scrollTo({ left: active.offsetLeft - bar.clientWidth / 2 + active.clientWidth / 2, behavior: 'smooth' });
+      }
+    });
+  },
+  { rootMargin: '-45% 0px -50% 0px' },
+);
+document.querySelectorAll('.tool').forEach((s) => observer.observe(s));
+
+let savedLang = null;
+let savedTheme = null;
 try {
-  saved = localStorage.getItem('dzkit-lang');
+  savedLang = localStorage.getItem('dzkit-lang');
+  savedTheme = localStorage.getItem('dzkit-theme');
 } catch {
-  saved = null;
+  /* storage unavailable */
 }
+theme = THEMES.includes(savedTheme) ? savedTheme : 'auto';
 const browser = (navigator.language || 'fr').slice(0, 2);
-setLang(saved ?? (T[browser] ? browser : 'fr'));
+setLang(savedLang ?? (T[browser] ? browser : 'fr'));
