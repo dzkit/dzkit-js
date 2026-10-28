@@ -18,6 +18,8 @@ The small things every Algerian app ends up rewriting, tested once and shared:
 
 Zero dependencies, TypeScript types included, works in Node 20+ and the browser.
 
+**[Try it in your browser](https://dzkit.github.io/dzkit-js/)**, no install needed.
+
 ```bash
 npm install dzkit
 ```

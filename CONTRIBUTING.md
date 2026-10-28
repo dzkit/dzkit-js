@@ -10,6 +10,7 @@ npm test          # run the tests
 npm run coverage  # with coverage
 npm run typecheck
 npm run build
+npm run demo      # build the playground into ./site, then serve it (e.g. npx serve site)
 ```
 
 ## Rules of thumb

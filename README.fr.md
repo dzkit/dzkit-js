@@ -14,6 +14,8 @@ Les petites fonctions que chaque application algérienne finit par réécrire, t
 
 Aucune dépendance, types TypeScript inclus, Node 20+ et navigateur.
 
+**[Essayer dans le navigateur](https://dzkit.github.io/dzkit-js/)**, sans rien installer.
+
 ```bash
 npm install dzkit
 ```

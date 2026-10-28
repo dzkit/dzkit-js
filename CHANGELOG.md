@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Playground at https://dzkit.github.io/dzkit-js/: try every function in French, Arabic or English
+
 ## 0.1.0 — 2026-10-28
 
 First release.

@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>dzkit playground</title>
+  <meta name="description" content="Try dzkit in your browser: CCP/RIP keys, Algerian phone numbers, licence plates, amounts in words in French and Arabic, and IRG/CNAS salary calculation.">
+  <meta name="theme-color" content="#0f3a2c">
+  <script>
+    // Apply the saved theme before the page paints, so there is no flash.
+    try {
+      const t = localStorage.getItem('dzkit-theme');
+      if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230f3a2c'/%3E%3Cpath transform='translate(2.4 2.4) scale(.8)' fill='%23f4cf57' d='M12 1.5l2 5.1 5.3-2-2 5.3 5.1 2-5.1 2 2 5.3-5.3-2-2 5.1-2-5.1-5.3 2 2-5.3L1.6 12l5.1-2-2-5.3 5.3 2z'/%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="skip" href="#tools" data-i18n="skip">Aller aux outils</a>
+
+  <header class="hero">
+    <div class="wrap bar">
+      <a class="brand" href="https://github.com/dzkit" aria-label="dzkit on GitHub">
+        <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5l2 5.1 5.3-2-2 5.3 5.1 2-5.1 2 2 5.3-5.3-2-2 5.1-2-5.1-5.3 2 2-5.3L1.6 12l5.1-2-2-5.3 5.3 2z"/></svg>
+        dzkit
+      </a>
+      <div class="bar-actions">
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" data-lang="fr" aria-pressed="true">FR</button>
+          <button type="button" data-lang="ar" aria-pressed="false" lang="ar">ع</button>
+          <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        </div>
+        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Theme">
+          <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+          <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1z"/></svg>
+          <span class="theme-label" id="theme-label">Auto</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1 data-i18n="title">Les règles algériennes, prêtes à l’emploi</h1>
+        <p class="lead" data-i18n="lead">Une bibliothèque open source pour vérifier, formater et calculer ce que chaque application algérienne finit par réécrire.</p>
+        <div class="install">
+          <code dir="ltr" id="install-cmd">npm install dzkit</code>
+          <button type="button" class="copy" data-copy="#install-cmd" data-i18n="copy">Copier</button>
+        </div>
+      </div>
+
+      <div class="omni" id="omni">
+        <label for="omni-input" class="omni-label" data-i18n="omniLabel">Collez n’importe quel numéro algérien</label>
+        <input id="omni-input" autocomplete="off" spellcheck="false" dir="ltr" value="00799999002311500797">
+        <div class="chips" id="omni-chips" dir="ltr">
+          <button type="button" class="chip" data-fill="0661 23 45 67">0661 23 45 67</button>
+          <button type="button" class="chip" data-fill="00799999002311500797">007 99999 0023115007 97</button>
+          <button type="button" class="chip" data-fill="02639-126-09">02639-126-09</button>
+          <button type="button" class="chip" data-fill="1 280 450,50 DA">1 280 450,50 DA</button>
+        </div>
+        <div class="omni-result" id="omni-result" aria-live="polite">
+          <p class="omni-kind" id="omni-kind"></p>
+          <div class="omni-doc" id="omni-doc"></div>
+          <p class="omni-detail" id="omni-detail"></p>
+          <a class="omni-open" id="omni-open" href="#rip" data-i18n="omniOpen">Ouvrir l’outil</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="toolnav" aria-label="Tools">
+    <div class="wrap toolnav-inner">
+      <a href="#rip" data-i18n="ripTitle">CCP et RIP</a>
+      <a href="#phone" data-i18n="phoneTitle">Téléphone</a>
+      <a href="#plate" data-i18n="plateTitle">Plaque</a>
+      <a href="#words" data-i18n="wordsTitle">Montant en lettres</a>
+      <a href="#salary" data-i18n="salaryTitle">Salaire net</a>
+      <a href="#ids" data-i18n="idsTitle">NIF et NIS</a>
+    </div>
+  </nav>
+
+  <main id="tools">
+    <!-- RIP -->
+    <section class="tool wrap" id="rip">
+      <div class="side">
+        <h2 data-i18n="ripTitle">CCP et RIP</h2>
+        <p class="hint" data-i18n="ripHint">Entrez un numéro de CCP pour obtenir sa clé et son RIP, ou un RIP complet de 20 chiffres pour le vérifier.</p>
+        <label for="rip-input" class="field-label" data-i18n="ripLabel">Numéro de CCP ou RIP</label>
+        <input id="rip-input" inputmode="numeric" autocomplete="off" dir="ltr" value="23115007">
+        <div class="chips" dir="ltr">
+          <button type="button" class="chip" data-target="#rip-input" data-fill="23115007">23115007</button>
+          <button type="button" class="chip" data-target="#rip-input" data-fill="00799999123456789006">00799999123456789006</button>
+          <button type="button" class="chip chip-bad" data-target="#rip-input" data-fill="00799999002311500700" data-i18n="chipWrongKey">Clé fausse</button>
+        </div>
+        <pre class="snippet" dir="ltr"><code id="rip-code"></code></pre>
+      </div>
+      <div class="stage">
+        <div class="desk">
+          <div class="rip-strip" id="rip-strip" dir="ltr"></div>
+        </div>
+        <dl class="facts" id="rip-facts"></dl>
+        <p class="status" id="rip-status" role="status"></p>
+      </div>
+    </section>
+
+    <!-- Phone -->
+    <section class="tool wrap" id="phone">
+      <div class="side">
+        <h2 data-i18n="phoneTitle">Téléphone</h2>
+        <p class="hint" data-i18n="phoneHint">Accepte 0551…, +213 551…, 00213… avec ou sans espaces.</p>
+        <label for="phone-input" class="field-label" data-i18n="phoneLabel">Numéro de téléphone</label>
+        <input id="phone-input" type="tel" autocomplete="off" dir="ltr" value="+213 661 23 45 67">
+        <div class="chips" dir="ltr">
+          <button type="button" class="chip" data-target="#phone-input" data-fill="0551234567">0551 23 45 67</button>
+          <button type="button" class="chip" data-target="#phone-input" data-fill="00213771234567">00213 771 23 45 67</button>
+          <button type="button" class="chip" data-target="#phone-input" data-fill="021 23 45 67">021 23 45 67</button>
+        </div>
+        <pre class="snippet" dir="ltr"><code id="phone-code"></code></pre>
+      </div>
+      <div class="stage">
+        <div class="desk">
+          <div class="phone-card" id="phone-card" dir="ltr">
+            <span class="phone-op" id="phone-op"></span>
+            <span class="phone-number" id="phone-big"></span>
+          </div>
+        </div>
+        <dl class="facts" id="phone-facts"></dl>
+        <p class="status" id="phone-status" role="status"></p>
+      </div>
+    </section>
+
+    <!-- Plate -->
+    <section class="tool wrap" id="plate">
+      <div class="side">
+        <h2 data-i18n="plateTitle">Plaque</h2>
+        <p class="hint" data-i18n="plateHint">Numéro d’ordre, catégorie et année, puis code de la wilaya. Les codes 59 à 69 sont valables à partir du 1er janvier 2027.</p>
+        <label for="plate-input" class="field-label" data-i18n="plateLabel">Plaque</label>
+        <input id="plate-input" autocomplete="off" dir="ltr" value="02639-126-09">
+        <div class="chips" dir="ltr">
+          <button type="button" class="chip" data-target="#plate-input" data-fill="02639-126-09">02639-126-09</button>
+          <button type="button" class="chip" data-target="#plate-input" data-fill="15843-919-16">15843-919-16</button>
+          <button type="button" class="chip" data-target="#plate-input" data-fill="00412-127-64">00412-127-64</button>
+        </div>
+        <pre class="snippet" dir="ltr"><code id="plate-code"></code></pre>
+      </div>
+      <div class="stage">
+        <div class="desk">
+          <div class="plate" id="plate-view" dir="ltr"></div>
+        </div>
+        <dl class="facts" id="plate-facts"></dl>
+        <p class="status" id="plate-status" role="status"></p>
+      </div>
+    </section>
+
+    <!-- Amount in words -->
+    <section class="tool wrap" id="words">
+      <div class="side">
+        <h2 data-i18n="wordsTitle">Montant en lettres</h2>
+        <p class="hint" data-i18n="wordsHint">Pour les factures et les chèques, en français et en arabe, avec les règles d’accord.</p>
+        <label for="words-input" class="field-label" data-i18n="wordsLabel">Montant en DA</label>
+        <input id="words-input" inputmode="decimal" autocomplete="off" dir="ltr" value="1280450.50">
+        <div class="chips" dir="ltr">
+          <button type="button" class="chip" data-target="#words-input" data-fill="3">3</button>
+          <button type="button" class="chip" data-target="#words-input" data-fill="80000">80 000</button>
+          <button type="button" class="chip" data-target="#words-input" data-fill="2000000">2 000 000</button>
+          <button type="button" class="chip" data-target="#words-input" data-fill="1280450.50">1 280 450,50</button>
+        </div>
+        <pre class="snippet" dir="ltr"><code id="words-code"></code></pre>
+      </div>
+      <div class="stage">
+        <div class="desk">
+          <div class="cheque" id="cheque">
+            <div class="cheque-head" dir="ltr">
+              <span class="cheque-amount" id="cheque-amount"></span>
+            </div>
+            <div class="cheque-line">
+              <span class="cheque-label" data-i18n="wordsFr">En français</span>
+              <p id="words-fr" lang="fr" dir="ltr"></p>
+            </div>
+            <div class="cheque-line">
+              <span class="cheque-label" data-i18n="wordsAr">En arabe</span>
+              <p id="words-ar" lang="ar" dir="rtl"></p>
+            </div>
+          </div>
+        </div>
+        <p class="status" id="words-status" role="status"></p>
+      </div>
+    </section>
+
+    <!-- Salary -->
+    <section class="tool wrap" id="salary">
+      <div class="side">
+        <h2 data-i18n="salaryTitle">Salaire net</h2>
+        <p class="hint" data-i18n="salaryHint">IRG selon l’article 104 du CIDTA et cotisations CNAS, pour un salaire mensuel régulier.</p>
+        <div class="segmented" role="radiogroup" aria-labelledby="salary-mode-label">
+          <span id="salary-mode-label" class="sr-only" data-i18n="salaryMode">Je connais</span>
+          <button type="button" role="radio" aria-checked="true" data-mode="gross" data-i18n="salaryFromGross">Le brut</button>
+          <button type="button" role="radio" aria-checked="false" data-mode="net" data-i18n="salaryFromNet">Le net</button>
+        </div>
+        <label for="salary-input" class="field-label" id="salary-input-label" data-i18n="salaryGrossLabel">Salaire brut mensuel en DA</label>
+        <input id="salary-input" inputmode="decimal" autocomplete="off" dir="ltr" value="60000">
+        <div class="chips" dir="ltr">
+          <button type="button" class="chip" data-target="#salary-input" data-fill="32000">32 000</button>
+          <button type="button" class="chip" data-target="#salary-input" data-fill="60000">60 000</button>
+          <button type="button" class="chip" data-target="#salary-input" data-fill="150000">150 000</button>
+        </div>
+        <label for="salary-regime" class="field-label" data-i18n="salaryRegime">Régime</label>
+        <select id="salary-regime">
+          <option value="salaried" data-i18n="regimeSalaried">Salarié</option>
+          <option value="retired" data-i18n="regimeRetired">Retraité (régime général)</option>
+          <option value="disabled" data-i18n="regimeDisabled">Travailleur handicapé</option>
+        </select>
+        <pre class="snippet" dir="ltr"><code id="salary-code"></code></pre>
+      </div>
+      <div class="stage">
+        <div class="desk desk-flat">
+          <div class="payslip-wrap">
+            <div class="net-hero">
+              <span class="net-label" data-i18n="rowNet">Net à payer</span>
+              <span class="net-value" id="ps-net-big" dir="ltr"></span>
+            </div>
+            <div class="bar-split" id="bar-split" aria-hidden="true">
+              <span class="seg seg-net"></span><span class="seg seg-irg"></span><span class="seg seg-cnas"></span>
+            </div>
+            <table class="payslip" id="payslip">
+              <caption class="sr-only" data-i18n="salaryTitle">Salaire net</caption>
+              <tbody>
+                <tr><th scope="row" data-i18n="rowGross">Salaire brut</th><td id="ps-gross"></td></tr>
+                <tr class="minus"><th scope="row"><i class="dot dot-cnas"></i><span data-i18n="rowCnas">Retenue CNAS (9 %)</span></th><td id="ps-cnas"></td></tr>
+                <tr class="sub"><th scope="row" data-i18n="rowTaxable">Revenu imposable</th><td id="ps-taxable"></td></tr>
+                <tr class="minus"><th scope="row"><i class="dot dot-irg"></i><span data-i18n="rowIrg">IRG</span></th><td id="ps-irg"></td></tr>
+                <tr class="total"><th scope="row"><i class="dot dot-net"></i><span data-i18n="rowNet">Net à payer</span></th><td id="ps-net"></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p class="employer" id="ps-employer"></p>
+        <p class="status" id="salary-status" role="status"></p>
+      </div>
+    </section>
+
+    <!-- NIF / NIS -->
+    <section class="tool wrap" id="ids">
+      <div class="side">
+        <h2 data-i18n="idsTitle">NIF et NIS</h2>
+        <p class="hint" data-i18n="idsHint">Aucune clé de contrôle n’est publiée pour ces numéros : seule la forme est vérifiée. Pour confirmer qu’un NIF existe, utilisez le portail de la DGI.</p>
+        <div class="segmented" role="radiogroup" aria-label="NIF / NIS">
+          <button type="button" role="radio" aria-checked="true" data-id="nif">NIF</button>
+          <button type="button" role="radio" aria-checked="false" data-id="nis">NIS</button>
+        </div>
+        <label for="ids-input" class="field-label" data-i18n="idsLabel">Numéro</label>
+        <input id="ids-input" inputmode="numeric" autocomplete="off" dir="ltr" value="408 020 000 150 039">
+        <pre class="snippet" dir="ltr"><code id="ids-code"></code></pre>
+      </div>
+      <div class="stage">
+        <div class="desk">
+          <div class="id-card" dir="ltr">
+            <span class="id-type" id="ids-type">NIF</span>
+            <span class="id-number" id="ids-big"></span>
+            <span class="id-count" id="ids-count"></span>
+          </div>
+        </div>
+        <p class="status" id="ids-status" role="status"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-inner">
+      <p data-i18n="footer">dzkit est open source, sous licence MIT. Une valeur vous semble fausse ? Ouvrez une issue avec un exemple réel anonymisé.</p>
+      <p class="foot-links">
+        <a href="https://github.com/dzkit/dzkit-js">GitHub</a>
+        <a href="https://www.npmjs.com/package/dzkit">npm</a>
+        <a href="https://github.com/dzkit/dzkit-js/issues/new/choose" data-i18n="reportIssue">Signaler un problème</a>
+      </p>
+    </div>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

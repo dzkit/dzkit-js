@@ -39,3 +39,5 @@ jobs:
         run: |
           node -e "const d = require('./dist/index.cjs'); if (d.ccpToRip('23115007') !== '00799999002311500797') process.exit(1)"
           node --input-type=module -e "import { amountToWords } from './dist/index.js'; if (!amountToWords(2).startsWith('deux')) process.exit(1)"
+      - name: Assemble the playground
+        run: node scripts/build-demo.mjs
