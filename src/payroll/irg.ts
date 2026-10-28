@@ -148,8 +148,10 @@ export function irgBreakdown(taxable: number, options: IrgOptions = {}): IrgBrea
   const abatementT = Math.min(Math.max(Math.round(scaleT * r.abatementRate), r.abatementMin * 1000), r.abatementMax * 1000);
   const afterT = scaleT - abatementT;
 
-  // IRG in tenths of a dinar (the DGI rounds down to 0.1 DA).
+  // IRG in tenths of a dinar (the DGI rounds down to 0.1 DA), and the second abatement
+  // in centimes (OPERATIONS.md, irg.breakdown).
   let tenths = floorDiv(afterT, 100);
+  let smoothingCents = 0;
   const smoothing =
     regime === 'salaried' && cents < Math.round(r.salariedSmoothingUpTo * 100)
       ? IRG_SALARIED_SMOOTHING
@@ -157,18 +159,23 @@ export function irgBreakdown(taxable: number, options: IrgOptions = {}): IrgBrea
         ? IRG_FAVOURABLE_SMOOTHING
         : null;
   if (smoothing) {
-    // IRG × a/b − c/d, exactly: (afterT·a·d − 1000·b·c) / (1000·b·d) DA, in tenths.
+    // Smoothed IRG = IRG × a/b − c/d, exactly: (afterT·a·d − 1000·b·c) / (1000·b·d) DA.
     const [a, b] = smoothing.multiplier;
     const [c, d] = smoothing.subtract;
-    tenths = floorDiv(afterT * a * d - 1000 * b * c, 100 * b * d);
+    const num = afterT * a * d - 1000 * b * c;
+    const den = 1000 * b * d;
+    tenths = floorDiv(num * 10, den);
+    // Second abatement = IRG after the first abatement − smoothed IRG, half up to the centime:
+    // (afterT·den − 1000·num) / (1000·den) DA.
+    const diffNum = afterT * den - 1000 * num;
+    smoothingCents = floorDiv(diffNum * 100 * 2 + 1000 * den, 2 * 1000 * den);
   }
-  const irg = Math.max(0, tenths) / 10;
   return {
     taxable,
     scaleIrg,
-    abatement: abatementT / 1000,
-    smoothing: Math.max(0, Math.round(afterT / 10) / 100 - irg),
-    irg,
+    abatement: Math.round(abatementT / 10) / 100,
+    smoothing: smoothingCents / 100,
+    irg: Math.max(0, tenths) / 10,
     exempt: false,
   };
 }

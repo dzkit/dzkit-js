@@ -36,11 +36,15 @@ const SUPPORTED_SCHEMA = 3;
 
 type Runner = (input: Record<string, any>) => Record<string, unknown> | null;
 
+const text = (t: string | null) => (t === null ? null : { text: t });
+
 const RUNNERS: Record<string, Runner> = {
   'rip.validate': ({ rip }) => {
     const p = dz.parseRip(rip);
     return p && { valid: true, account: p.account, key: p.key };
   },
+  'rip.format': ({ rip }) => text(dz.formatRip(rip)),
+  'ccp.validate': ({ account, key }) => ({ valid: dz.isValidCcp(account, key) }),
   'rip.from-ccp': ({ account }) => {
     const rip = dz.ccpToRip(account);
     return rip ? { rip, ccp_key: dz.ccpKey(account), rip_key: rip.slice(18) } : null;
@@ -55,13 +59,33 @@ const RUNNERS: Record<string, Runner> = {
     if (p.freephone !== undefined) out.freephone = p.freephone;
     return out;
   },
+  'phone.validate': ({ number, type, allocated_only }) => ({
+    valid: dz.isValidPhone(number, { type, allocatedOnly: allocated_only }),
+  }),
+  'phone.format': ({ number, style }) => text(dz.formatPhone(number, style)),
   'plate.parse': ({ plate, date }) => {
     const p = dz.parsePlate(plate, { at: date });
-    return p && { serial: p.serial, category: p.category, year: p.year, wilaya: p.wilaya.code };
+    return p && { serial: p.serial, category: p.category, category_name: p.categoryName, year: p.year, wilaya: p.wilaya.code };
   },
+  'plate.format': ({ plate, date }) => text(dz.formatPlate(plate, { at: date })),
   'nif.validate': ({ value }) => ({ valid: dz.isValidNif(value) }),
   'nis.validate': ({ value }) => ({ valid: dz.isValidNis(value) }),
   'irg.calculate': ({ taxable, regime, date }) => ({ irg: dz.calculateIrg(taxable, { regime, at: date }) }),
+  'irg.breakdown': ({ taxable, regime, date }) => {
+    const r = dz.irgBreakdown(taxable, { regime, at: date });
+    return { scale_irg: r.scaleIrg, abatement: r.abatement, smoothing: r.smoothing, irg: r.irg, exempt: r.exempt };
+  },
+  'salary.net-to-gross': ({ net, regime, date }) => {
+    const r = dz.netToGross(net, { regime, at: date });
+    return {
+      gross: r.gross,
+      cnas_employee: r.cnasEmployee,
+      taxable: r.taxable,
+      irg: r.irg,
+      net: r.net,
+      cnas_employer: r.cnasEmployer,
+    };
+  },
   'salary.gross-to-net': ({ gross, regime, date }) => {
     const r = dz.grossToNet(gross, { regime, at: date });
     return {
@@ -78,7 +102,7 @@ const RUNNERS: Record<string, Runner> = {
   'words.amount-ar': ({ amount }) => ({ text: dz.amountToWordsAr(amount) }),
   'wilaya.lookup': ({ code, date }) => {
     const w = dz.getWilaya(code, { at: date });
-    return w ? { name_fr: w.name, name_ar: w.nameAr } : null;
+    return w ? { name_fr: w.name, name_ar: w.nameAr, parent: w.parent, valid_from: w.validFrom } : null;
   },
 };
 

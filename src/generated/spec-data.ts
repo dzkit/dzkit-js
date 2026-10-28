@@ -3,7 +3,7 @@
 // official sources, verification level and validity dates are recorded.
 /* eslint-disable */
 
-export const SPEC_VERSION = '0.3.0';
+export const SPEC_VERSION = '0.4.0';
 
 // administrative.wilayas (valid from 1984-02-04; sources: loi-84-09, decret-84-79, loi-19-12, decret-presidentiel-21-117, loi-26-06, decret-presidentiel-26-206, upgrowth-wilayas-2026, wikipedia-provinces)
 /** First day the list applies (dates before it have no version). */
