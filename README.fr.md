@@ -63,16 +63,24 @@ calculateIrg(40_000, { regime: 'retired' }); // 2745.4
 
 **CNAS** : 9 % salarié, 25 % + 0,5 % employeur (modifiables).
 
-**Ce n'est pas un conseil fiscal.** Les règles changent avec les lois de finances : vérifiez auprès d'un comptable, et signalez toute différence dans une issue.
-
 ## Sources
 
-Chaque règle repose sur un texte officiel ou une source fiable, listés avec leur date dans [SOURCES.md](SOURCES.md).
+Chaque règle repose sur un texte officiel, classé selon la hiérarchie des textes juridiques algériens. Les règles, leurs sources et les preuves de chacune sont tenues dans [dzkit-spec](https://github.com/dzkit/dzkit-spec), commun à tous les paquets dzkit ; voir son [rapport de confiance](https://github.com/dzkit/dzkit-spec/blob/main/TRUST.md).
+
+## Pas un conseil juridique
+
+Ce projet est une référence, maintenue avec soin et reliée à ses sources pour que chaque valeur puisse être vérifiée. Ce n'est pas un conseil juridique ou fiscal. Quand une valeur compte, vérifiez-la dans le texte officiel, et [ouvrez une issue](https://github.com/dzkit/dzkit-js/issues) si vous trouvez une différence.
 
 ## Contribuer
 
-Les issues et pull requests sont les bienvenues, en français, en arabe ou en anglais. Voir [CONTRIBUTING.md](CONTRIBUTING.md).
+Les issues et pull requests sont les bienvenues en العربية, français ou anglais. Voir [CONTRIBUTING.md](CONTRIBUTING.md) et la [gouvernance](https://github.com/dzkit/dzkit-spec/blob/main/GOVERNANCE.md) du projet.
+
+Particulièrement utiles :
+
+- Un exemple réel qui échoue (un RIP, une plaque, un montant d'IRG tiré d'une fiche de paie)
+- Un changement de règle après une nouvelle loi de finances
+- Le portage en PHP / Laravel
 
 ## Licence
 
-[MIT](LICENSE) © Siroukane
+[MIT](LICENSE) © Siroukane et les contributeurs dzkit. Les textes officiels appartiennent à leurs éditeurs.
