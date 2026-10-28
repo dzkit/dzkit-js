@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.4.0 — 2026-10-28
+
+Follows [dzkit-spec 0.4.0](https://github.com/dzkit/dzkit-spec/blob/main/CHANGELOG.md), which defines every function: passes all 339 shared test cases.
+
+### Changed — what to check when upgrading
+
+- `formatPhone` with a style other than `national` or `international`, and `isValidPhone` with an unknown `type`, now throw `DzkitError` `invalid-option`. They used to answer anyway (an unknown style gave the international format; an unknown type gave `false`).
+
+### Fixed
+
+- `irgBreakdown().smoothing` is now only the second abatement from the smoothing formula, rounded half up to the centime, and 0 when no formula applies. It used to include the final rounding to 0.1 DA, so a salary with no smoothing could show a smoothing of `0.0299999…`; for 32 000 DA it is now 698.15 (was 698.2). `abatement` is rounded half up to the centime (it could show a third decimal). The IRG itself is unchanged: identical on more than 580,000 checked incomes.
+
+### Also
+
+- The release workflow uses the current artifact actions, which run on Node 24 (GitHub is retiring Node 20 for actions).
+
 ## 0.3.0 — 2026-10-28
 
 Follows [dzkit-spec 0.3.0](https://github.com/dzkit/dzkit-spec/blob/main/CHANGELOG.md) and its new [OPERATIONS.md](https://github.com/dzkit/dzkit-spec/blob/main/OPERATIONS.md): passes all 273 shared test cases.

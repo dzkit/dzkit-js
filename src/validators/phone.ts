@@ -21,9 +21,11 @@ import {
   PHONE_SERVICE_BLOCKS,
   PHONE_VOIP_BLOCKS,
 } from '../generated/spec-data';
-import { cleanText } from '../core';
+import { cleanText, DzkitError } from '../core';
 
 export type PhoneType = 'mobile' | 'landline' | 'service' | 'voip';
+
+const PHONE_TYPES: readonly string[] = ['mobile', 'landline', 'service', 'voip'];
 export type MobileOperator = 'Ooredoo' | 'Mobilis' | 'Djezzy';
 
 export interface ParsedPhone {
@@ -107,8 +109,15 @@ export interface PhoneOptions {
   allocatedOnly?: boolean;
 }
 
+/**
+ * Whether `input` is a phone number, optionally of one type and in an allocated block.
+ * Never throws for the input; an unknown `type` throws DzkitError "invalid-option".
+ */
 export function isValidPhone(input: unknown, options: PhoneType | PhoneOptions = {}): boolean {
   const opts: PhoneOptions = typeof options === 'string' ? { type: options } : options;
+  if (opts.type !== undefined && !PHONE_TYPES.includes(opts.type)) {
+    throw new DzkitError('invalid-option', `Unknown phone type "${String(opts.type)}"; expected one of ${PHONE_TYPES.join(', ')}`);
+  }
   const p = parsePhone(input);
   if (p === null) return false;
   if (opts.type !== undefined && p.type !== opts.type) return false;
@@ -124,8 +133,14 @@ export function getMobileOperator(input: unknown): MobileOperator | null {
   return parsePhone(input)?.operator ?? null;
 }
 
-/** Formats as "0551 23 45 67" (national) or "+213 551 23 45 67" (international); null if invalid. */
+/**
+ * Formats as "0551 23 45 67" (national) or "+213 551 23 45 67" (international); null if
+ * the number is invalid. An unknown `style` throws DzkitError "invalid-option".
+ */
 export function formatPhone(input: unknown, style: 'national' | 'international' = 'national'): string | null {
+  if (style !== 'national' && style !== 'international') {
+    throw new DzkitError('invalid-option', `Unknown phone style "${String(style)}"; expected national or international`);
+  }
   const p = parsePhone(input);
   if (!p) return null;
   const n = p.nationalNumber;
