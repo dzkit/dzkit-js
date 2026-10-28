@@ -1,0 +1,66 @@
+name: Release
+
+# Publishes the package to npm when a GitHub release is published.
+#
+# Authentication:
+#   - Normally: npm trusted publishing. GitHub proves its identity to npm with a
+#     short-lived OIDC token; no secret is stored. Configure it once on npmjs.com:
+#     package settings → Trusted publishing → GitHub Actions →
+#     organization "dzkit", repository "dzkit-js", workflow "release.yml".
+#   - First release only: npm can't create a new package through trusted publishing,
+#     so add a short-lived token as the NPM_TOKEN secret, publish once, then delete it.
+#
+# Provenance is attached, so npmjs.com shows which commit and workflow built the package.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write # needed for trusted publishing and provenance
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      # Trusted publishing needs npm 11.5.1 or later.
+      - run: npm install -g npm@^11.5.1 && npm --version
+
+      - name: Check that the release tag matches package.json
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version=$(node -p "require('./package.json').version")
+          if [ "$tag" != "$version" ]; then
+            echo "::error::The release tag is ${GITHUB_REF_NAME} but package.json says ${version}. Update package.json (and CHANGELOG.md) in a pull request first, then create the release v${version}."
+            exit 1
+          fi
+          if npm view "dzkit@${version}" version >/dev/null 2>&1; then
+            echo "::error::dzkit@${version} is already on npm. Bump the version in package.json first."
+            exit 1
+          fi
+
+      - run: npm ci
+
+      # Runs the type check, all tests and the build first (prepublishOnly).
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          # Empty once trusted publishing is configured; only set for the first release.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Summary
+        run: |
+          version=$(node -p "require('./package.json').version")
+          echo "Published [dzkit@${version}](https://www.npmjs.com/package/dzkit/v/${version}) with provenance." >> "$GITHUB_STEP_SUMMARY"

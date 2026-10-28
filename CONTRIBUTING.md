@@ -26,6 +26,11 @@ After each finance law (loi de finances), check whether article 104 of the CIDTA
 
 ## Releasing
 
-1. Update `CHANGELOG.md` and the version in `package.json`
-2. `npm publish` (runs typecheck, tests and build first)
-3. Tag the release on GitHub
+Releases are published to npm by GitHub Actions (`.github/workflows/release.yml`), with provenance, so npmjs.com shows which commit and workflow built each version. Nobody publishes from their own computer.
+
+1. In a pull request, update the version in `package.json` (following [semantic versioning](https://semver.org)) and move the "Unreleased" notes in `CHANGELOG.md` under that version.
+2. Merge it once CI is green.
+3. On GitHub, go to **Releases → Draft a new release**, create the tag `v<version>` on `main` (for example `v0.2.0`), paste the changelog notes, and click **Publish release**.
+4. The Release workflow checks that the tag matches `package.json`, runs the type check, tests and build, and publishes to npm. Follow it in the **Actions** tab.
+
+Publishing uses npm trusted publishing: no npm token is stored in the repository.
