@@ -3,7 +3,7 @@
 # dzkit 🇩🇿
 
 [![CI](https://github.com/dzkit/dzkit-js/actions/workflows/ci.yml/badge.svg)](https://github.com/dzkit/dzkit-js/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/dzkit.svg)](https://www.npmjs.com/package/dzkit)
+[![npm](https://img.shields.io/npm/v/@dzkit/dzkit-js.svg)](https://www.npmjs.com/package/@dzkit/dzkit-js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 The small things every Algerian app ends up rewriting, tested once and shared:
@@ -21,13 +21,13 @@ Zero dependencies, TypeScript types included, works in Node 20+ and the browser.
 **[Try it in your browser](https://dzkit.github.io/dzkit-js/)**, no install needed.
 
 ```bash
-npm install dzkit
+npm install @dzkit/dzkit-js
 ```
 
 ## CCP and RIP
 
 ```ts
-import { ccpToRip, isValidRip, ccpKey, parseRip } from 'dzkit';
+import { ccpToRip, isValidRip, ccpKey, parseRip } from '@dzkit/dzkit-js';
 
 ccpToRip('23115007');                 // '00799999002311500797'
 isValidRip('007 99999 0023115007 97'); // true
@@ -41,7 +41,7 @@ Tested against real RIP numbers, including key `97`, which many calculators get 
 ## Phone numbers
 
 ```ts
-import { parsePhone, formatPhone, getMobileOperator } from 'dzkit';
+import { parsePhone, formatPhone, getMobileOperator } from '@dzkit/dzkit-js';
 
 parsePhone('+213 551 23 45 67');
 // { type: 'mobile', operator: 'Ooredoo', national: '0551234567', e164: '+213551234567', ... }
@@ -61,7 +61,7 @@ isValidMobile('0685 12 34 56', { allocatedOnly: true }); // false
 ## NIF and NIS
 
 ```ts
-import { isValidNif, isValidNis } from 'dzkit';
+import { isValidNif, isValidNis } from '@dzkit/dzkit-js';
 
 isValidNif('408 020 000 150 039'); // true  (15 digits, or 20 for a branch)
 isValidNis('098716010002343');     // true  (15 digits, or 18 for a secondary establishment)
@@ -72,7 +72,7 @@ No public check-digit algorithm exists for these, so this checks the format only
 ## Licence plates
 
 ```ts
-import { parsePlate, formatPlate } from 'dzkit';
+import { parsePlate, formatPlate } from '@dzkit/dzkit-js';
 
 parsePlate('02639-126-09');
 // { serial: '02639', category: 1, categoryName: 'Véhicule de tourisme', year: '26', wilaya: { code: 9, name: 'Blida', ... } }
@@ -85,7 +85,7 @@ Codes 59–69 are only accepted from 1 January 2027, when the new wilayas get th
 ## Wilayas
 
 ```ts
-import { WILAYAS, getWilaya } from 'dzkit';
+import { WILAYAS, getWilaya } from '@dzkit/dzkit-js';
 
 WILAYAS.length;      // 69
 getWilaya(16);       // { code: 16, name: 'Alger', nameAr: 'الجزائر' }
@@ -96,7 +96,7 @@ Need communes, dairas or postal codes? Use [geoalgeria](https://www.npmjs.com/pa
 ## Amounts in words
 
 ```ts
-import { amountToWords, toWordsFr, toWordsAr } from 'dzkit';
+import { amountToWords, toWordsFr, toWordsAr } from '@dzkit/dzkit-js';
 
 amountToWords(1250.5, 'fr');
 // 'mille deux cent cinquante dinars algériens et cinquante centimes'
@@ -112,7 +112,7 @@ French follows the traditional agreement rules (quatre-vingts, deux cents, mille
 ## Payroll: IRG and CNAS
 
 ```ts
-import { grossToNet, calculateIrg, irgBreakdown, netToGross } from 'dzkit';
+import { grossToNet, calculateIrg, irgBreakdown, netToGross } from '@dzkit/dzkit-js';
 
 grossToNet(60_000);
 // { gross: 60000, cnasEmployee: 5400, taxable: 54600, irg: 7042, net: 47558,
