@@ -16,7 +16,7 @@ The small things every Algerian app ends up rewriting, tested once and shared:
 - **Amounts in words**: DZD in French and Arabic, for invoices
 - **Payroll**: IRG (article 104) and CNAS, gross ↔ net
 
-Zero dependencies, TypeScript types included, works in Node 18+ and the browser.
+Zero dependencies, TypeScript types included, works in Node 20+ and the browser.
 
 ```bash
 npm install dzkit
