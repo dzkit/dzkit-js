@@ -20,10 +20,33 @@ describe('wilayas', () => {
     WILAYAS.forEach((w, i) => expect(w.code).toBe(i + 1));
   });
 
+  it('numbers the 2025 wilayas as in décret présidentiel 26-206', () => {
+    expect(WILAYAS.slice(58).map((w) => w.name)).toEqual([
+      'Aflou',
+      'Barika',
+      'El Kantara',
+      'Bir El Ater',
+      'El Aricha',
+      'Ksar Chellala',
+      'Aïn Ouessara',
+      'Messaad',
+      'Ksar El Boukhari',
+      'Bou Saâda',
+      'El Abiodh Sidi Cheikh',
+    ]);
+  });
+
+  it('has a French and an Arabic name for every wilaya', () => {
+    for (const w of WILAYAS) {
+      expect(w.name.trim()).not.toBe('');
+      expect(w.nameAr).toMatch(/^[\u0600-\u06FF\s]+$/);
+    }
+  });
+
   it('looks up by number or string', () => {
     expect(getWilaya(16)?.name).toBe('Alger');
     expect(getWilaya('09')?.nameAr).toBe('البليدة');
-    expect(getWilaya(69)?.name).toBe('Messaad');
+    expect(getWilaya(69)?.name).toBe('El Abiodh Sidi Cheikh');
     expect(getWilaya(70)).toBeUndefined();
     expect(getWilaya(0)).toBeUndefined();
   });
@@ -53,6 +76,37 @@ describe('phone', () => {
     'rejects %s',
     (input) => expect(isValidPhone(input)).toBe(false),
   );
+
+  it('tells whether a mobile number is in a block ARPCE has allocated', () => {
+    expect(parsePhone('0551234567')?.allocated).toBe(true);
+    expect(parsePhone('0541234567')?.allocated).toBe(true);
+    expect(parsePhone('0561234567')?.allocated).toBe(true);
+    expect(parsePhone('0563234567')?.allocated).toBe(false);
+    expect(parsePhone('0655234567')?.allocated).toBe(true);
+    expect(parsePhone('0654234567')?.allocated).toBe(false);
+    expect(parsePhone('0676234567')?.allocated).toBe(true);
+    expect(parsePhone('0685234567')?.allocated).toBe(false);
+    expect(parsePhone('0699234567')?.allocated).toBe(true);
+    expect(parsePhone('0784234567')?.allocated).toBe(true);
+    expect(parsePhone('0785234567')?.allocated).toBe(false);
+    expect(parsePhone('0791234567')?.allocated).toBe(true);
+  });
+
+  it('only rejects unallocated blocks when asked to', () => {
+    expect(isValidMobile('0685234567')).toBe(true);
+    expect(isValidMobile('0685234567', { allocatedOnly: true })).toBe(false);
+    expect(isValidPhone('0551234567', { type: 'mobile', allocatedOnly: true })).toBe(true);
+    expect(isValidPhone('021234567', { allocatedOnly: true })).toBe(true);
+  });
+
+  it('recognises freephone, value-added and VoIP numbers', () => {
+    expect(parsePhone('0800 12 34 56')).toMatchObject({ type: 'service', freephone: true, allocated: true });
+    expect(parsePhone('0803 12 34 56')).toMatchObject({ type: 'service', freephone: false, allocated: true });
+    expect(parsePhone('0807 12 34 56')).toMatchObject({ type: 'service', allocated: false });
+    expect(parsePhone('0982 12 34 56')).toMatchObject({ type: 'voip', allocated: true });
+    expect(parsePhone('0961 12 34 56')).toMatchObject({ type: 'voip', allocated: true });
+    expect(parsePhone('0951 12 34 56')).toMatchObject({ type: 'voip', allocated: false });
+  });
 
   it('formats', () => {
     expect(formatPhone('+213551234567')).toBe('0551 23 45 67');
@@ -99,7 +153,7 @@ describe('licence plates', () => {
   it('accepts codes 59–69 only from 1 January 2027', () => {
     expect(isValidPlate('12345-127-64', before2027)).toBe(false);
     expect(isValidPlate('12345-127-64', after2027)).toBe(true);
-    expect(parsePlate('12345-127-64', after2027)?.wilaya.name).toBe('Bou Saâda');
+    expect(parsePlate('12345-127-64', after2027)?.wilaya.name).toBe('Ksar Chellala');
   });
 
   it.each(['12345-126-70', '12345-026-16', '00000-126-16', '1234567-126-16', '12345-12-16'])('rejects %s', (p) =>

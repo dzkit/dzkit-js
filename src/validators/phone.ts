@@ -1,16 +1,20 @@
 /**
- * Algerian phone numbers (+213).
+ * Algerian phone numbers (+213), following ARPCE's national numbering plan (PNN, 2008).
  *
  * National format:
- *   mobile   0[5|6|7]XXXXXXXX  (10 digits) — 05 Ooredoo, 06 Mobilis, 07 Djezzy
- *   landline 0[2|3|4]XXXXXXX   (9 digits)  — 2-digit area code + 6 digits
- *   VoIP     09XXXXXXXX        (10 digits)
+ *   mobile   0[5|6|7]XXXXXXXX  (10 digits): 05 Ooredoo, 06 Mobilis, 07 Djezzy
+ *   landline 0[2|3|4]XXXXXXX   (9 digits): 2-digit area code + 6 digits
+ *   service  08XXXXXXXX        (10 digits): 0800 freephone, 0801–0809 value-added services
+ *   VoIP     09XXXXXXXX        (10 digits): 0982 non-geographic VoIP, 0961 VSAT
+ *
+ * `allocated` tells whether the number falls in a block ARPCE has assigned. Validation
+ * does not require it, so a block assigned after this list was written still validates.
  *
  * The operator is derived from the prefix. Algeria has no mobile number portability
  * today; if it is introduced, the prefix will no longer prove the current operator.
  */
 
-export type PhoneType = 'mobile' | 'landline' | 'voip';
+export type PhoneType = 'mobile' | 'landline' | 'service' | 'voip';
 export type MobileOperator = 'Ooredoo' | 'Mobilis' | 'Djezzy';
 
 export interface ParsedPhone {
@@ -24,13 +28,53 @@ export interface ParsedPhone {
   operator?: MobileOperator;
   /** Landline area code, e.g. "21" for Algiers. */
   areaCode?: string;
+  /**
+   * Mobile, service and VoIP numbers: whether the number is in a block ARPCE has
+   * allocated. Not set for landlines.
+   */
+  allocated?: boolean;
+  /** Service numbers: true for 0800 freephone numbers. */
+  freephone?: boolean;
 }
+
+/**
+ * Mobile blocks allocated by ARPCE, as 3-digit prefixes after the leading 0
+ * (inclusive ranges). Source: arpce.dz, "Numérotation" page, updated 11 March 2025.
+ */
+export const MOBILE_BLOCKS: Readonly<Record<MobileOperator, readonly (readonly [number, number])[]>> = Object.freeze({
+  // Wataniya Télécom Algérie (brand: Ooredoo)
+  Ooredoo: [
+    [540, 542],
+    [549, 549],
+    [550, 559],
+    [560, 562],
+  ],
+  // Algérie Télécom Mobile (brand: Mobilis)
+  Mobilis: [
+    [655, 659],
+    [660, 669],
+    [670, 676],
+    [696, 699],
+  ],
+  // Optimum Télécom Algérie (brand: Djezzy)
+  Djezzy: [
+    [770, 779],
+    [780, 784],
+    [790, 799],
+  ],
+});
 
 const OPERATORS: Record<string, MobileOperator> = {
   '5': 'Ooredoo',
   '6': 'Mobilis',
   '7': 'Djezzy',
 };
+
+const VOIP_BLOCKS = ['961', '982'];
+
+function inBlocks(prefix: number, blocks: readonly (readonly [number, number])[]): boolean {
+  return blocks.some(([from, to]) => prefix >= from && prefix <= to);
+}
 
 function toNationalNumber(input: string): string | null {
   let s = input.trim().replace(/[\s.\-()]/g, '');
@@ -50,20 +94,36 @@ export function parsePhone(input: string): ParsedPhone | null {
   const base = { nationalNumber: n, national: `0${n}`, e164: `+213${n}` };
 
   if (/^[567]\d{8}$/.test(n)) {
-    return { type: 'mobile', ...base, operator: OPERATORS[n[0] as string] };
+    const operator = OPERATORS[n[0] as string] as MobileOperator;
+    return { type: 'mobile', ...base, operator, allocated: inBlocks(Number(n.slice(0, 3)), MOBILE_BLOCKS[operator]) };
   }
-  if (/^9\d{8}$/.test(n)) return { type: 'voip', ...base };
+  if (/^8\d{8}$/.test(n)) {
+    const block = Number(n.slice(0, 3));
+    return { type: 'service', ...base, freephone: block === 800, allocated: block >= 800 && block <= 809 && block !== 807 };
+  }
+  if (/^9\d{8}$/.test(n)) return { type: 'voip', ...base, allocated: VOIP_BLOCKS.includes(n.slice(0, 3)) };
   if (/^[234]\d{7}$/.test(n)) return { type: 'landline', ...base, areaCode: n.slice(0, 2) };
   return null;
 }
 
-export function isValidPhone(input: string, type?: PhoneType): boolean {
-  const p = parsePhone(input);
-  return p !== null && (type === undefined || p.type === type);
+export interface PhoneOptions {
+  /** Only accept this type of number. */
+  type?: PhoneType;
+  /** Also require the number to be in a block ARPCE has allocated (not checked for landlines). */
+  allocatedOnly?: boolean;
 }
 
-export function isValidMobile(input: string): boolean {
-  return isValidPhone(input, 'mobile');
+export function isValidPhone(input: string, options: PhoneType | PhoneOptions = {}): boolean {
+  const opts: PhoneOptions = typeof options === 'string' ? { type: options } : options;
+  const p = parsePhone(input);
+  if (p === null) return false;
+  if (opts.type !== undefined && p.type !== opts.type) return false;
+  if (opts.allocatedOnly && p.allocated === false) return false;
+  return true;
+}
+
+export function isValidMobile(input: string, options: Omit<PhoneOptions, 'type'> = {}): boolean {
+  return isValidPhone(input, { ...options, type: 'mobile' });
 }
 
 export function getMobileOperator(input: string): MobileOperator | null {

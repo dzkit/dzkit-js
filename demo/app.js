@@ -272,6 +272,13 @@ const EXTRA = {
     themeLight: 'Clair',
     themeDark: 'Sombre',
     idsCount: (n) => `${n} chiffres`,
+    service: 'Numéro de service',
+    freephone: 'Numéro vert (gratuit)',
+    phoneUnallocated: 'Format valide, mais ce bloc n’est pas encore attribué par l’ARPCE.',
+    plateErrMiddle: 'Le groupe du milieu doit avoir 3 chiffres : la catégorie (1 à 9) puis l’année, par exemple 126.',
+    plateErrCategory: 'La catégorie (premier chiffre du milieu) va de 1 à 9 : 0 n’existe pas.',
+    plateErrWilaya: (w) => `Le code de wilaya ${w} n’existe pas : il va de 01 à 69.`,
+    plateErrSerial: 'Le numéro d’ordre (premier groupe) a de 1 à 6 chiffres et ne peut pas être 0.',
   },
   ar: {
     lead: 'مكتبة مفتوحة المصدر للتحقق والتنسيق والحساب، لكل ما يعيد كل تطبيق جزائري كتابته.',
@@ -295,6 +302,13 @@ const EXTRA = {
     themeLight: 'فاتح',
     themeDark: 'داكن',
     idsCount: (n) => `${n} رقما`,
+    service: 'رقم خدمة',
+    freephone: 'رقم أخضر (مجاني)',
+    phoneUnallocated: 'الشكل صحيح، لكن هذه الكتلة لم تمنحها سلطة الضبط بعد.',
+    plateErrMiddle: 'يجب أن تتكون المجموعة الوسطى من 3 أرقام: الصنف (من 1 إلى 9) ثم السنة، مثل 126.',
+    plateErrCategory: 'الصنف (أول رقم في الوسط) من 1 إلى 9، ولا يوجد صنف 0.',
+    plateErrWilaya: (w) => `رمز الولاية ${w} غير موجود: الرموز من 01 إلى 69.`,
+    plateErrSerial: 'الرقم التسلسلي (المجموعة الأولى) من 1 إلى 6 أرقام ولا يمكن أن يكون 0.',
   },
   en: {
     lead: 'An open-source library to check, format and calculate the things every Algerian app ends up rewriting.',
@@ -318,6 +332,13 @@ const EXTRA = {
     themeLight: 'Light',
     themeDark: 'Dark',
     idsCount: (n) => `${n} digits`,
+    service: 'Service number',
+    freephone: 'Freephone number',
+    phoneUnallocated: 'Valid format, but ARPCE has not allocated this block yet.',
+    plateErrMiddle: 'The middle group needs 3 digits: the category (1 to 9) then the year, for example 126.',
+    plateErrCategory: 'The category (first middle digit) goes from 1 to 9; 0 doesn’t exist.',
+    plateErrWilaya: (w) => `Wilaya code ${w} doesn’t exist: codes go from 01 to 69.`,
+    plateErrSerial: 'The serial (first group) has 1 to 6 digits and can’t be 0.',
   },
 };
 for (const l of Object.keys(T)) Object.assign(T[l], EXTRA[l]);
@@ -582,7 +603,7 @@ function renderPhone() {
     return;
   }
   $('#phone-card').style.opacity = '';
-  $('#phone-op').textContent = p.operator ?? t(p.type);
+  $('#phone-op').textContent = p.freephone ? t('freephone') : p.operator ?? t(p.type);
   $('#phone-big').textContent = formatPhone(raw, 'international');
   const rows = [[t('phoneType'), t(p.type)]];
   if (p.operator) rows.push([t('phoneOperator'), p.operator]);
@@ -595,10 +616,23 @@ function renderPhone() {
     ...(p.operator ? [`p.operator;  // ${q(p.operator)}`] : []),
     `p.e164;      // ${q(p.e164)}`,
   ]);
-  setStatus(status, 'ok', t('phoneOk'));
+  if (p.allocated === false) setStatus(status, 'bad', t('phoneUnallocated'));
+  else setStatus(status, 'ok', t('phoneOk'));
 }
 
 /* ---------- Plate tool ---------- */
+
+/** Says which part of an invalid plate is wrong, when the three groups are visible. */
+function plateReason(raw) {
+  const m = /^(\d+)[\s-]+(\d+)[\s-]+(\d+)$/.exec(raw.trim());
+  if (!m) return t('plateBad');
+  const [, serial, middle, ww] = m;
+  if (serial.length > 6 || /^0+$/.test(serial)) return t('plateErrSerial');
+  if (middle.length !== 3) return t('plateErrMiddle');
+  if (middle[0] === '0') return t('plateErrCategory');
+  if (ww.length !== 2 || Number(ww) < 1 || Number(ww) > 69) return t('plateErrWilaya', ww);
+  return t('plateBad');
+}
 
 function renderPlate() {
   const raw = $('#plate-input').value;
@@ -629,7 +663,7 @@ function renderPlate() {
   plateDoc(view, raw.trim() || '00000-000-00', 'invalid');
   facts($('#plate-facts'), []);
   code($('#plate-code'), [`parsePlate(${q(raw.trim())});  // null`]);
-  setStatus(status, 'bad', t('plateBad'));
+  setStatus(status, 'bad', plateReason(raw));
 }
 
 /* ---------- Amount in words tool ---------- */
