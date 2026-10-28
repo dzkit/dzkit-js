@@ -21,11 +21,11 @@
 </div>
 
 ```bash
-npm install dzkit
+npm install @dzkit/dzkit-js
 ```
 
 ```ts
-import { ccpToRip, amountToWords, grossToNet, parsePhone } from 'dzkit';
+import { ccpToRip, amountToWords, grossToNet, parsePhone } from '@dzkit/dzkit-js';
 
 ccpToRip('23115007');           // '00799999002311500797'
 amountToWords(1250.5, 'ar');    // 'ألف ومائتان وخمسون دينارا جزائريا وخمسون سنتيما'

@@ -17,7 +17,7 @@ Aucune dépendance, types TypeScript inclus, Node 20+ et navigateur.
 **[Essayer dans le navigateur](https://dzkit.github.io/dzkit-js/)**, sans rien installer.
 
 ```bash
-npm install dzkit
+npm install @dzkit/dzkit-js
 ```
 
 ## Exemples
@@ -27,7 +27,7 @@ import {
   ccpToRip, isValidRip, ccpKey,
   parsePhone, isValidNif, parsePlate, getWilaya,
   amountToWords, grossToNet, calculateIrg,
-} from 'dzkit';
+} from '@dzkit/dzkit-js';
 
 ccpToRip('23115007');                  // '00799999002311500797'
 isValidRip('007 99999 0023115007 97'); // true

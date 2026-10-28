@@ -46,8 +46,9 @@ jobs:
             echo "::error::The release tag is ${GITHUB_REF_NAME} but package.json says ${version}. Update package.json (and CHANGELOG.md) in a pull request first, then create the release v${version}."
             exit 1
           fi
-          if npm view "dzkit@${version}" version >/dev/null 2>&1; then
-            echo "::error::dzkit@${version} is already on npm. Bump the version in package.json first."
+          name=$(node -p "require('./package.json').name")
+          if npm view "${name}@${version}" version >/dev/null 2>&1; then
+            echo "::error::${name}@${version} is already on npm. Bump the version in package.json first."
             exit 1
           fi
 
@@ -62,5 +63,6 @@ jobs:
 
       - name: Summary
         run: |
+          name=$(node -p "require('./package.json').name")
           version=$(node -p "require('./package.json').version")
-          echo "Published [dzkit@${version}](https://www.npmjs.com/package/dzkit/v/${version}) with provenance." >> "$GITHUB_STEP_SUMMARY"
+          echo "Published [${name}@${version}](https://www.npmjs.com/package/${name}/v/${version}) with provenance." >> "$GITHUB_STEP_SUMMARY"
