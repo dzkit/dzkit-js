@@ -1,3 +1,4 @@
+export { DzkitError, toLatinDigits, type DzkitErrorCode, type DateInput } from './core';
 export * from './data/wilayas';
 export * from './validators/ccp';
 export * from './validators/phone';

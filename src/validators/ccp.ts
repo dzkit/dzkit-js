@@ -20,16 +20,20 @@ import {
   RIP_BRANCH_CODE,
   RIP_KEY,
 } from '../generated/spec-data';
+import { cleanText } from '../core';
 
 export const RIP_PREFIX = RIP_BANK_CODE + RIP_BRANCH_CODE;
 
-function digitsOnly(input: string): string {
-  return input.replace(/[\s.\-_/]/g, '');
+/** Text with whitespace, dots, dashes, underscores and slashes removed; null if not text. */
+function digitsOnly(input: unknown): string | null {
+  const text = cleanText(input);
+  return text === null ? null : text.replace(/[\s.\-_/]/g, '');
 }
 
-function normalizeAccount(account: string | number): string | null {
-  const raw = digitsOnly(String(account));
-  if (raw.length < 1 || raw.length > RIP_ACCOUNT_DIGITS || !/^\d+$/.test(raw)) return null;
+/** 10-digit account, from text or a non-negative integer; null when it isn't one. */
+function normalizeAccount(account: unknown): string | null {
+  const raw = typeof account === 'number' ? (Number.isSafeInteger(account) && account >= 0 ? String(account) : null) : digitsOnly(account);
+  if (raw === null || raw.length < 1 || raw.length > RIP_ACCOUNT_DIGITS || !/^\d+$/.test(raw)) return null;
   return raw.padStart(RIP_ACCOUNT_DIGITS, '0');
 }
 
@@ -37,9 +41,9 @@ function normalizeAccount(account: string | number): string | null {
  * Key printed after the CCP account number ("clé CCP"), e.g. 1234567890 clé 45.
  * Weighted sum of the digits from right to left (weights 4, 5, 6, …, 13), modulo 100.
  */
-export function ccpKey(account: string | number): string {
+export function ccpKey(account: unknown): string | null {
   const acc = normalizeAccount(account);
-  if (acc === null) throw new TypeError(`Invalid CCP account number: ${String(account)}`);
+  if (acc === null) return null;
   let sum = 0;
   CCP_KEY_WEIGHTS_FROM_RIGHT.forEach((weight, i) => {
     sum += Number(acc[acc.length - 1 - i]) * weight;
@@ -48,27 +52,27 @@ export function ccpKey(account: string | number): string {
 }
 
 /** Checks a CCP account number together with its key, e.g. isValidCcp('1234567890', '45'). */
-export function isValidCcp(account: string | number, key: string | number): boolean {
-  if (normalizeAccount(account) === null) return false;
-  const k = digitsOnly(String(key));
-  if (!/^\d{1,2}$/.test(k)) return false;
-  return ccpKey(account) === k.padStart(2, '0');
+export function isValidCcp(account: unknown, key: unknown): boolean {
+  const expected = ccpKey(account);
+  const k = typeof key === 'number' ? (Number.isSafeInteger(key) && key >= 0 ? String(key) : null) : digitsOnly(key);
+  if (expected === null || k === null || !/^\d{1,2}$/.test(k)) return false;
+  return expected === k.padStart(2, '0');
 }
 
 /** RIP key for a CCP account: 97 − ((account × 100 + 85) mod 97), so the key is in 01–97. */
-export function ripKey(account: string | number): string {
+export function ripKey(account: unknown): string | null {
   const acc = normalizeAccount(account);
-  if (acc === null) throw new TypeError(`Invalid CCP account number: ${String(account)}`);
+  if (acc === null) return null;
   const { modulus, multiplier, offset } = RIP_KEY;
   const key = modulus - ((Number(acc) * multiplier + offset) % modulus);
   return String(key).padStart(2, '0');
 }
 
-/** Builds the full 20-digit RIP from a CCP account number. */
-export function ccpToRip(account: string | number): string {
+/** Builds the full 20-digit RIP from a CCP account number; null if it isn't one. */
+export function ccpToRip(account: unknown): string | null {
   const acc = normalizeAccount(account);
-  if (acc === null) throw new TypeError(`Invalid CCP account number: ${String(account)}`);
-  return RIP_PREFIX + acc + ripKey(acc);
+  if (acc === null) return null;
+  return RIP_PREFIX + acc + (ripKey(acc) as string);
 }
 
 export interface ParsedRip {
@@ -81,14 +85,14 @@ export interface ParsedRip {
 }
 
 /** Validates a 20-digit RIP (spaces and dashes allowed). */
-export function isValidRip(rip: string): boolean {
+export function isValidRip(rip: unknown): boolean {
   return parseRip(rip) !== null;
 }
 
 /** Parses and validates a RIP. Returns null when the format or the key is wrong. */
-export function parseRip(rip: string): ParsedRip | null {
+export function parseRip(rip: unknown): ParsedRip | null {
   const r = digitsOnly(rip);
-  if (!/^\d{20}$/.test(r) || !r.startsWith(RIP_PREFIX)) return null;
+  if (r === null || !/^\d{20}$/.test(r) || !r.startsWith(RIP_PREFIX)) return null;
   const account = r.slice(8, 18);
   const key = r.slice(18);
   if (ripKey(account) !== key) return null;
@@ -97,13 +101,13 @@ export function parseRip(rip: string): ParsedRip | null {
     branchCode: r.slice(3, 8),
     account,
     key,
-    ccpKey: ccpKey(account),
+    ccpKey: ccpKey(account) as string,
   };
 }
 
-/** Formats a RIP as "007 99999 0002311500 97". */
-export function formatRip(rip: string): string {
-  const r = digitsOnly(rip);
-  if (!/^\d{20}$/.test(r)) throw new TypeError(`A RIP has 20 digits: ${rip}`);
-  return `${r.slice(0, 3)} ${r.slice(3, 8)} ${r.slice(8, 18)} ${r.slice(18)}`;
+/** Formats a valid RIP as "007 99999 0002311500 97"; null if it isn't valid. */
+export function formatRip(rip: unknown): string | null {
+  const p = parseRip(rip);
+  if (!p) return null;
+  return `${p.bankCode} ${p.branchCode} ${p.account} ${p.key}`;
 }

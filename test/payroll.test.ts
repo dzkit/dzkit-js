@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateIrg, grossToNet, irgBreakdown, irgFromScale, netToGross } from '../src';
+import { calculateIrg, DzkitError, grossToNet, irgBreakdown, irgFromScale, netToGross } from '../src';
 
 // Reference values: DGI monthly IRG table as reported by Algérie 360 (16 Oct 2026)
 // and Teamed (21 Oct 2026), both read against article 104 of the CIDTA 2026.
@@ -91,5 +91,29 @@ describe('gross to net', () => {
 
   it('net to gross of 0 is 0', () => {
     expect(netToGross(0).gross).toBe(0);
+  });
+
+  it('throws DzkitError for impossible requests instead of guessing', () => {
+    const code = (f: () => unknown) => {
+      try {
+        f();
+      } catch (e) {
+        return e instanceof DzkitError ? e.code : 'not a DzkitError';
+      }
+      return 'no error';
+    };
+    expect(code(() => calculateIrg(40_000, { regime: 'retraite' as 'retired' }))).toBe('invalid-option');
+    expect(code(() => calculateIrg(-1))).toBe('invalid-amount');
+    expect(code(() => calculateIrg('40000' as unknown as number))).toBe('invalid-amount');
+    expect(code(() => calculateIrg(40_000, { at: '2021-12-31' }))).toBe('no-rule-for-date');
+    expect(code(() => calculateIrg(40_000, { at: '31/12/2026' }))).toBe('invalid-option');
+    expect(code(() => grossToNet(60_000, { regime: 'x' as 'retired' }))).toBe('invalid-option');
+    expect(code(() => grossToNet(60_000, { employeeRate: 9 }))).toBe('invalid-option');
+    expect(code(() => netToGross(-5))).toBe('invalid-amount');
+  });
+
+  it('applies the rules of the day asked for', () => {
+    expect(calculateIrg(40_000, { at: '2022-01-01' })).toBe(3_100);
+    expect(calculateIrg(40_000, { at: new Date('2026-10-28') })).toBe(3_100);
   });
 });

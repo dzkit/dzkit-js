@@ -1,6 +1,6 @@
 {
   "name": "@dzkit/dzkit-js",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Algerian developer toolkit: CCP/RIP keys, NIF/NIS, phone numbers, licence plates (69 wilayas), DZD amounts in words (French & Arabic), IRG/CNAS payroll.",
   "keywords": [
     "algeria",
@@ -62,7 +62,7 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^3.2.7",
-    "dzkit-spec": "https://github.com/dzkit/dzkit-spec/archive/refs/tags/v0.2.0.tar.gz",
+    "dzkit-spec": "https://github.com/dzkit/dzkit-spec/archive/refs/tags/v0.3.0.tar.gz",
     "tsup": "^9.0.0",
     "typescript": "^5.9.3",
     "vitest": "^3.2.7"

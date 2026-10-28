@@ -13,6 +13,7 @@ import {
   isValidNif,
   isValidNis,
   compactId,
+  toLatinDigits,
 } from './dzkit.js';
 
 /* ---------- Translations ---------- */
@@ -412,7 +413,7 @@ function code(node, lines) {
 }
 
 const q = (s) => `'${String(s).replace(/'/g, "\\'")}'`;
-const parseAmount = (s) => Number(String(s).replace(/\s|da|dzd|دج/gi, '').replace(',', '.'));
+const parseAmount = (s) => Number(toLatinDigits(String(s)).replace(/\s|da|dzd|دج/gi, '').replace(/[,٫]/, '.'));
 const plateYear = (yy) => (Number(yy) <= (new Date().getFullYear() % 100) + 1 ? '20' : '19') + yy;
 const wilayaName = (w) => (lang === 'ar' ? w.nameAr : w.name);
 const list = (...items) => items.join(lang === 'ar' ? '، ' : ', ');
@@ -440,7 +441,7 @@ function plateDoc(node, text, state = 'ok') {
 /* ---------- Hero: recognise whatever is pasted ---------- */
 
 function detect(raw) {
-  const s = raw.trim();
+  const s = toLatinDigits(raw).trim();
   if (!s) return null;
   const digits = s.replace(/[\s.\-_/]/g, '');
 
@@ -551,7 +552,7 @@ function renderOmni() {
 
 function renderRip() {
   const raw = $('#rip-input').value;
-  const digits = raw.replace(/[\s.\-_/]/g, '');
+  const digits = toLatinDigits(raw).replace(/[\s.\-_/]/g, '');
   const strip = $('#rip-strip');
   const status = $('#rip-status');
 
@@ -582,7 +583,7 @@ function renderRip() {
   } else {
     ripStrip(strip, '00799999' + '0'.repeat(12), 'empty');
     facts($('#rip-facts'), []);
-    code($('#rip-code'), [`ccpToRip(${q(raw.trim())});  // TypeError`]);
+    code($('#rip-code'), [`ccpToRip(${q(raw.trim())});  // null`]);
     setStatus(status, 'bad', t('ripBadFormat'));
   }
 }
@@ -704,7 +705,7 @@ function renderSalary() {
     $('#ps-net-big').textContent = '—';
     [segNet, segIrg, segCnas].forEach((s) => (s.style.width = '0'));
     $('#ps-employer').textContent = '';
-    code($('#salary-code'), [`grossToNet(${raw.trim() || 'NaN'});  // RangeError`]);
+    code($('#salary-code'), [`grossToNet(${raw.trim() || 'NaN'});  // DzkitError: invalid-amount`]);
     setStatus(status, 'bad', t('salaryBad'));
     return;
   }
@@ -714,7 +715,8 @@ function renderSalary() {
   const optsCode = regime === 'salaried' ? '' : `, { regime: ${q(regime)} }`;
   const values = [r.gross, -r.cnasEmployee, r.taxable, -r.irg, r.net];
   cells.forEach((c, i) => {
-    c.textContent = values[i] < 0 ? `− ${money(-values[i])}` : money(values[i]);
+    // `|| 0` turns −0 (a deduction of nothing) into 0, so it isn't shown as "-0.00".
+    c.textContent = values[i] < 0 ? `− ${money(-values[i])}` : money(values[i] || 0);
     c.dir = 'ltr';
   });
   $('#ps-net-big').textContent = money(r.net);

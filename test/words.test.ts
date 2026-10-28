@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { amountToWords, amountToWordsAr, amountToWordsFr, toWordsAr, toWordsFr } from '../src';
+import { amountToWords, amountToWordsAr, amountToWordsFr, DzkitError, toWordsAr, toWordsFr } from '../src';
 
 describe('French', () => {
   it.each([
@@ -46,10 +46,16 @@ describe('French', () => {
     expect(amountToWordsFr(0.1 + 0.2)).toBe('zéro dinar algérien et trente centimes');
   });
 
-  it('rejects negative or invalid amounts', () => {
-    expect(() => amountToWordsFr(-1)).toThrow(RangeError);
-    expect(() => amountToWordsFr(Number.NaN)).toThrow(RangeError);
-    expect(() => toWordsFr(1.5)).toThrow(RangeError);
+  it('rejects negative, invalid or too large amounts with DzkitError "invalid-amount"', () => {
+    for (const f of [() => amountToWordsFr(-1), () => amountToWordsFr(Number.NaN), () => toWordsFr(1.5), () => toWordsFr(1e12), () => amountToWordsFr(1e12)]) {
+      expect(f).toThrow(DzkitError);
+      try {
+        f();
+      } catch (e) {
+        expect((e as DzkitError).code).toBe('invalid-amount');
+      }
+    }
+    expect(() => amountToWords(1, 'en' as 'fr')).toThrow(/Unknown language/);
   });
 });
 

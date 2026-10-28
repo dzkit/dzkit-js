@@ -47,6 +47,13 @@ grossToNet(60_000).net;         // 47558
 
 **الضمان الاجتماعي**: 9 % على العامل، و25 % + 0,5 % على صاحب العمل.
 
+**المدخلات والأخطاء والتواريخ** (قواعد مشتركة بين جميع حزم dzkit، انظر [OPERATIONS.md](https://github.com/dzkit/dzkit-spec/blob/main/OPERATIONS.md)):
+
+- دوال التحقق والقراءة لا ترمي أي خطأ: أي قيمة غير صالحة، حتى `undefined` أو رقم بدل نص، تعطي `false` أو `null`
+- الأرقام العربية المشرقية (٠١٢…) مقبولة في كل مكان
+- الحسابات ترمي `DzkitError` مع رمز `code` (`invalid-amount` أو `invalid-option` أو `no-rule-for-date`) بدل التخمين، مثلا عند نظام غير معروف
+- الدوال `calculateIrg` و`grossToNet` و`parsePlate` و`getWilaya` تقبل الخيار `{ at }`: كائن `Date` أو `"YYYY-MM-DD"`
+
 ## المصادر
 
 كل قاعدة مبنية على نص رسمي، مرتب حسب تدرج النصوص القانونية الجزائرية. القواعد ومصادرها والأدلة على كل منها محفوظة في [dzkit-spec](https://github.com/dzkit/dzkit-spec)، المشترك بين كل حزم dzkit؛ راجع [تقرير الثقة](https://github.com/dzkit/dzkit-spec/blob/main/TRUST.md).

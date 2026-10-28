@@ -3,9 +3,11 @@
 // official sources, verification level and validity dates are recorded.
 /* eslint-disable */
 
-export const SPEC_VERSION = '0.2.0';
+export const SPEC_VERSION = '0.3.0';
 
-// administrative.wilayas (valid from 2026-04-04; sources: loi-84-09, decret-84-79, loi-26-06, decret-presidentiel-26-206, upgrowth-wilayas-2026, wikipedia-provinces)
+// administrative.wilayas (valid from 1984-02-04; sources: loi-84-09, decret-84-79, loi-19-12, decret-presidentiel-21-117, loi-26-06, decret-presidentiel-26-206, upgrowth-wilayas-2026, wikipedia-provinces)
+/** First day the list applies (dates before it have no version). */
+export const WILAYAS_VALID_FROM = '1984-02-04';
 export const WILAYA_DATA = [
   { code: 1, name: 'Adrar', nameAr: 'أدرار' },
   { code: 2, name: 'Chlef', nameAr: 'الشلف' },
@@ -55,27 +57,27 @@ export const WILAYA_DATA = [
   { code: 46, name: 'Aïn Témouchent', nameAr: 'عين تموشنت' },
   { code: 47, name: 'Ghardaïa', nameAr: 'غرداية' },
   { code: 48, name: 'Relizane', nameAr: 'غليزان' },
-  { code: 49, name: 'Timimoun', nameAr: 'تيميمون' },
-  { code: 50, name: 'Bordj Badji Mokhtar', nameAr: 'برج باجي مختار' },
-  { code: 51, name: 'Ouled Djellal', nameAr: 'أولاد جلال' },
-  { code: 52, name: 'Béni Abbès', nameAr: 'بني عباس' },
-  { code: 53, name: 'In Salah', nameAr: 'عين صالح' },
-  { code: 54, name: 'In Guezzam', nameAr: 'عين قزام' },
-  { code: 55, name: 'Touggourt', nameAr: 'تقرت' },
-  { code: 56, name: 'Djanet', nameAr: 'جانت' },
-  { code: 57, name: 'El M\'Ghair', nameAr: 'المغير' },
-  { code: 58, name: 'El Menia', nameAr: 'المنيعة' },
-  { code: 59, name: 'Aflou', nameAr: 'آفلو' },
-  { code: 60, name: 'Barika', nameAr: 'بريكة' },
-  { code: 61, name: 'El Kantara', nameAr: 'القنطرة' },
-  { code: 62, name: 'Bir El Ater', nameAr: 'بئر العاتر' },
-  { code: 63, name: 'El Aricha', nameAr: 'العريشة' },
-  { code: 64, name: 'Ksar Chellala', nameAr: 'قصر الشلالة' },
-  { code: 65, name: 'Aïn Ouessara', nameAr: 'عين وسارة' },
-  { code: 66, name: 'Messaad', nameAr: 'مسعد' },
-  { code: 67, name: 'Ksar El Boukhari', nameAr: 'قصر البخاري' },
-  { code: 68, name: 'Bou Saâda', nameAr: 'بوسعادة' },
-  { code: 69, name: 'El Abiodh Sidi Cheikh', nameAr: 'الأبيض سيدي الشيخ' },
+  { code: 49, name: 'Timimoun', nameAr: 'تيميمون', parent: 1, validFrom: '2019-12-11' },
+  { code: 50, name: 'Bordj Badji Mokhtar', nameAr: 'برج باجي مختار', parent: 1, validFrom: '2019-12-11' },
+  { code: 51, name: 'Ouled Djellal', nameAr: 'أولاد جلال', parent: 7, validFrom: '2019-12-11' },
+  { code: 52, name: 'Béni Abbès', nameAr: 'بني عباس', parent: 8, validFrom: '2019-12-11' },
+  { code: 53, name: 'In Salah', nameAr: 'عين صالح', parent: 11, validFrom: '2019-12-11' },
+  { code: 54, name: 'In Guezzam', nameAr: 'عين قزام', parent: 11, validFrom: '2019-12-11' },
+  { code: 55, name: 'Touggourt', nameAr: 'تقرت', parent: 30, validFrom: '2019-12-11' },
+  { code: 56, name: 'Djanet', nameAr: 'جانت', parent: 33, validFrom: '2019-12-11' },
+  { code: 57, name: 'El M\'Ghair', nameAr: 'المغير', parent: 39, validFrom: '2019-12-11' },
+  { code: 58, name: 'El Menia', nameAr: 'المنيعة', parent: 47, validFrom: '2019-12-11' },
+  { code: 59, name: 'Aflou', nameAr: 'آفلو', parent: 3, validFrom: '2026-04-04' },
+  { code: 60, name: 'Barika', nameAr: 'بريكة', parent: 5, validFrom: '2026-04-04' },
+  { code: 61, name: 'El Kantara', nameAr: 'القنطرة', parent: 7, validFrom: '2026-04-04' },
+  { code: 62, name: 'Bir El Ater', nameAr: 'بئر العاتر', parent: 12, validFrom: '2026-04-04' },
+  { code: 63, name: 'El Aricha', nameAr: 'العريشة', parent: 13, validFrom: '2026-04-04' },
+  { code: 64, name: 'Ksar Chellala', nameAr: 'قصر الشلالة', parent: 14, validFrom: '2026-04-04' },
+  { code: 65, name: 'Aïn Ouessara', nameAr: 'عين وسارة', parent: 17, validFrom: '2026-04-04' },
+  { code: 66, name: 'Messaad', nameAr: 'مسعد', parent: 17, validFrom: '2026-04-04' },
+  { code: 67, name: 'Ksar El Boukhari', nameAr: 'قصر البخاري', parent: 26, validFrom: '2026-04-04' },
+  { code: 68, name: 'Bou Saâda', nameAr: 'بوسعادة', parent: 28, validFrom: '2026-04-04' },
+  { code: 69, name: 'El Abiodh Sidi Cheikh', nameAr: 'الأبيض سيدي الشيخ', parent: 32, validFrom: '2026-04-04' },
 ] as const;
 
 // vehicles.plates (sources: arrete-plates-2026, decret-presidentiel-26-206)
@@ -120,12 +122,14 @@ export const RIP_KEY = { modulus: 97, multiplier: 100, offset: 85 } as const;
 export const CCP_KEY_WEIGHTS_FROM_RIGHT = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13] as const;
 export const CCP_KEY_MODULUS = 100;
 
-// business.nif-nis (sources: python-stdnum-nif, upgrowth-nif, decret-executif-97-396)
+// business.nif (status confirmed; sources: python-stdnum-nif, upgrowth-nif)
 export const NIF_LENGTHS = [15, 20] as const;
+// business.nis (status official; sources: decret-executif-97-396)
 export const NIS_LENGTHS = [15, 18] as const;
 
 // payroll.irg-salary (valid from 2022-01-01; sources: loi-21-16, cidta-2026, dgi-bareme-irg)
 export const IRG_VALID_FROM = '2022-01-01';
+export const IRG_REGIMES = ['salaried', 'retired', 'disabled'] as const;
 export const IRG_MONTHLY_BRACKETS = [
   { upTo: 20_000, rate: 0 },
   { upTo: 40_000, rate: 0.23 },
