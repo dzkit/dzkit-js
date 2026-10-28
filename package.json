@@ -1,5 +1,5 @@
 {
-  "name": "dz-kit",
+  "name": "dzkit",
   "version": "0.1.0",
   "description": "Algerian developer toolkit: CCP/RIP keys, NIF/NIS, phone numbers, licence plates (69 wilayas), DZD amounts in words (French & Arabic), IRG/CNAS payroll.",
   "keywords": [
@@ -19,13 +19,13 @@
     "validator"
   ],
   "license": "MIT",
-  "author": "DrSiroukane",
+  "author": "Siroukane (https://github.com/DrSiroukane)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DrSiroukane/dz-kit.git"
+    "url": "git+https://github.com/dzkit/dzkit-js.git"
   },
-  "homepage": "https://github.com/DrSiroukane/dz-kit#readme",
-  "bugs": "https://github.com/DrSiroukane/dz-kit/issues",
+  "homepage": "https://github.com/dzkit/dzkit-js#readme",
+  "bugs": "https://github.com/dzkit/dzkit-js/issues",
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",

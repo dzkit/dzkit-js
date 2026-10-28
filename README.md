@@ -1,9 +1,9 @@
 **English** | [Français](README.fr.md) | [العربية](README.ar.md)
 
-# dz-kit 🇩🇿
+# dzkit 🇩🇿
 
-[![CI](https://github.com/DrSiroukane/dz-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/DrSiroukane/dz-kit/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/dz-kit.svg)](https://www.npmjs.com/package/dz-kit)
+[![CI](https://github.com/dzkit/dzkit-js/actions/workflows/ci.yml/badge.svg)](https://github.com/dzkit/dzkit-js/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/dzkit.svg)](https://www.npmjs.com/package/dzkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 The small things every Algerian app ends up rewriting, tested once and shared:
@@ -19,13 +19,13 @@ The small things every Algerian app ends up rewriting, tested once and shared:
 Zero dependencies, TypeScript types included, works in Node 18+ and the browser.
 
 ```bash
-npm install dz-kit
+npm install dzkit
 ```
 
 ## CCP and RIP
 
 ```ts
-import { ccpToRip, isValidRip, ccpKey, parseRip } from 'dz-kit';
+import { ccpToRip, isValidRip, ccpKey, parseRip } from 'dzkit';
 
 ccpToRip('23115007');                 // '00799999002311500797'
 isValidRip('007 99999 0023115007 97'); // true
@@ -39,7 +39,7 @@ Tested against real RIP numbers, including key `97`, which many calculators get 
 ## Phone numbers
 
 ```ts
-import { parsePhone, formatPhone, getMobileOperator } from 'dz-kit';
+import { parsePhone, formatPhone, getMobileOperator } from 'dzkit';
 
 parsePhone('+213 551 23 45 67');
 // { type: 'mobile', operator: 'Ooredoo', national: '0551234567', e164: '+213551234567', ... }
@@ -52,7 +52,7 @@ formatPhone('0771234567', 'international'); // '+213 771 23 45 67'
 ## NIF and NIS
 
 ```ts
-import { isValidNif, isValidNis } from 'dz-kit';
+import { isValidNif, isValidNis } from 'dzkit';
 
 isValidNif('408 020 000 150 039'); // true  (15 digits, or 20 for a branch)
 isValidNis('098716010002343');     // true  (15 digits, or 18 for a secondary establishment)
@@ -63,7 +63,7 @@ No public check-digit algorithm exists for these, so this checks the format only
 ## Licence plates
 
 ```ts
-import { parsePlate, formatPlate } from 'dz-kit';
+import { parsePlate, formatPlate } from 'dzkit';
 
 parsePlate('02639-126-09');
 // { serial: '02639', category: 1, categoryName: 'Véhicule de tourisme', year: '26', wilaya: { code: 9, name: 'Blida', ... } }
@@ -76,7 +76,7 @@ Codes 59–69 are only accepted from 1 January 2027, when the new wilayas get th
 ## Wilayas
 
 ```ts
-import { WILAYAS, getWilaya } from 'dz-kit';
+import { WILAYAS, getWilaya } from 'dzkit';
 
 WILAYAS.length;      // 69
 getWilaya(16);       // { code: 16, name: 'Alger', nameAr: 'الجزائر' }
@@ -87,7 +87,7 @@ Need communes, dairas or postal codes? Use [geoalgeria](https://www.npmjs.com/pa
 ## Amounts in words
 
 ```ts
-import { amountToWords, toWordsFr, toWordsAr } from 'dz-kit';
+import { amountToWords, toWordsFr, toWordsAr } from 'dzkit';
 
 amountToWords(1250.5, 'fr');
 // 'mille deux cent cinquante dinars algériens et cinquante centimes'
@@ -103,7 +103,7 @@ French follows the traditional agreement rules (quatre-vingts, deux cents, mille
 ## Payroll: IRG and CNAS
 
 ```ts
-import { grossToNet, calculateIrg, irgBreakdown, netToGross } from 'dz-kit';
+import { grossToNet, calculateIrg, irgBreakdown, netToGross } from 'dzkit';
 
 grossToNet(60_000);
 // { gross: 60000, cnasEmployee: 5400, taxable: 54600, irg: 7042, net: 47558,
@@ -143,7 +143,7 @@ Issues and pull requests are welcome, in English, French or Arabic. See [CONTRIB
 
 - Real examples that fail (a RIP, a plate, an IRG amount from a payslip)
 - Rule changes from a new finance law
-- A PHP / Laravel port (planned)
+- A PHP / Laravel port (planned, under the [dzkit](https://github.com/dzkit) organization)
 
 ## License
 

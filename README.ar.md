@@ -2,7 +2,7 @@
 
 <div dir="rtl">
 
-# dz-kit 🇩🇿
+# dzkit 🇩🇿
 
 الأدوات الصغيرة التي يعيد كل تطبيق جزائري كتابتها، مختبرة مرة واحدة ومتاحة للجميع:
 
@@ -19,11 +19,11 @@
 </div>
 
 ```bash
-npm install dz-kit
+npm install dzkit
 ```
 
 ```ts
-import { ccpToRip, amountToWords, grossToNet, parsePhone } from 'dz-kit';
+import { ccpToRip, amountToWords, grossToNet, parsePhone } from 'dzkit';
 
 ccpToRip('23115007');           // '00799999002311500797'
 amountToWords(1250.5, 'ar');    // 'ألف ومائتان وخمسون دينارا جزائريا وخمسون سنتيما'

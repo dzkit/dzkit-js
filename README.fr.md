@@ -1,6 +1,6 @@
 [English](README.md) | **Français** | [العربية](README.ar.md)
 
-# dz-kit 🇩🇿
+# dzkit 🇩🇿
 
 Les petites fonctions que chaque application algérienne finit par réécrire, testées une fois et partagées :
 
@@ -15,7 +15,7 @@ Les petites fonctions que chaque application algérienne finit par réécrire, t
 Aucune dépendance, types TypeScript inclus, Node 18+ et navigateur.
 
 ```bash
-npm install dz-kit
+npm install dzkit
 ```
 
 ## Exemples
@@ -25,7 +25,7 @@ import {
   ccpToRip, isValidRip, ccpKey,
   parsePhone, isValidNif, parsePlate, getWilaya,
   amountToWords, grossToNet, calculateIrg,
-} from 'dz-kit';
+} from 'dzkit';
 
 ccpToRip('23115007');                  // '00799999002311500797'
 isValidRip('007 99999 0023115007 97'); // true
