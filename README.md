@@ -49,7 +49,14 @@ getMobileOperator('0661234567');          // 'Mobilis'
 formatPhone('0771234567', 'international'); // '+213 771 23 45 67'
 ```
 
-05 = Ooredoo, 06 = Mobilis, 07 = Djezzy, 09 = VoIP, 02x/03x/04x = landline. The operator comes from the prefix; Algeria has no mobile number portability today.
+05 = Ooredoo, 06 = Mobilis, 07 = Djezzy, 08 = freephone and value-added services, 09 = VoIP, 02x/03x/04x = landline. The operator comes from the prefix; Algeria has no mobile number portability today.
+
+`allocated` tells you whether the number is in a block ARPCE has actually assigned (for example, Mobilis has 0655–0676 and 0696–0699, so 0685… doesn't exist yet). Validation doesn't require it by default, so a newly assigned block keeps working; pass `{ allocatedOnly: true }` to be strict:
+
+```ts
+parsePhone('0685 12 34 56')?.allocated;                // false
+isValidMobile('0685 12 34 56', { allocatedOnly: true }); // false
+```
 
 ## NIF and NIS
 
@@ -70,7 +77,7 @@ import { parsePlate, formatPlate } from 'dzkit';
 parsePlate('02639-126-09');
 // { serial: '02639', category: 1, categoryName: 'Véhicule de tourisme', year: '26', wilaya: { code: 9, name: 'Blida', ... } }
 
-parsePlate('12345-127-64', { at: new Date('2027-03-01') })?.wilaya.name; // 'Bou Saâda'
+parsePlate('12345-127-64', { at: new Date('2027-03-01') })?.wilaya.name; // 'Ksar Chellala'
 ```
 
 Codes 59–69 are only accepted from 1 January 2027, when the new wilayas get their plates. Pass `at` to check another date.
@@ -138,6 +145,10 @@ What it implements (article 104 of the CIDTA, scale from the 2022 finance law, u
 Published reference values from the DGI table are part of the unit tests. Out of scope for now: non-monthly bonuses (10 % flat withholding), exempt allowances, and the training and apprenticeship taxes.
 
 **Not tax advice.** Rules change with finance laws. If a figure matters, check it with an accountant, and please open an issue if you spot a difference.
+
+## Sources
+
+Every rule comes from an official text or a reliable source, listed with its date and how confident we are in [SOURCES.md](SOURCES.md). If you know a better source, please open an issue.
 
 ## Contributing
 

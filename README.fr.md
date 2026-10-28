@@ -36,7 +36,7 @@ ccpKey('1234567890');                  // '45'
 parsePhone('0661234567')?.operator;    // 'Mobilis'
 isValidNif('408 020 000 150 039');     // true
 parsePlate('02639-126-09')?.wilaya.name; // 'Blida'
-getWilaya(64)?.name;                   // 'Bou Saâda'
+getWilaya(64)?.name;                   // 'Ksar Chellala'
 
 amountToWords(1250.5, 'fr');
 // 'mille deux cent cinquante dinars algériens et cinquante centimes'
@@ -64,6 +64,10 @@ calculateIrg(40_000, { regime: 'retired' }); // 2745.4
 **CNAS** : 9 % salarié, 25 % + 0,5 % employeur (modifiables).
 
 **Ce n'est pas un conseil fiscal.** Les règles changent avec les lois de finances : vérifiez auprès d'un comptable, et signalez toute différence dans une issue.
+
+## Sources
+
+Chaque règle repose sur un texte officiel ou une source fiable, listés avec leur date dans [SOURCES.md](SOURCES.md).
 
 ## Contribuer
 

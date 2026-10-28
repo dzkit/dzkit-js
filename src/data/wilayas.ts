@@ -7,8 +7,11 @@ export interface Wilaya {
   nameAr: string;
 }
 
-// Codes 59–69: created by the 2025 territorial reform (loi n° 26-06, April 2026),
-// plate codes in force from 1 January 2027.
+// Codes 1–58: décret n° 84-79 (1984), completed in 2019.
+// Codes 59–69: loi n° 26-06 of 4 April 2026 (69 wilayas) and décret présidentiel
+// n° 26-206 of 25 May 2026 (JO n° 40), which fixes their names and numbers.
+// Plates with codes 59–69 are issued from 1 January 2027 (arrêté, JO n° 50, 2026).
+// See SOURCES.md.
 export const WILAYAS: readonly Wilaya[] = Object.freeze([
   { code: 1, name: 'Adrar', nameAr: 'أدرار' },
   { code: 2, name: 'Chlef', nameAr: 'الشلف' },
@@ -69,16 +72,16 @@ export const WILAYAS: readonly Wilaya[] = Object.freeze([
   { code: 57, name: "El M'Ghair", nameAr: 'المغير' },
   { code: 58, name: 'El Menia', nameAr: 'المنيعة' },
   { code: 59, name: 'Aflou', nameAr: 'آفلو' },
-  { code: 60, name: 'El Abiodh Sidi Cheikh', nameAr: 'الأبيض سيدي الشيخ' },
-  { code: 61, name: 'El Aricha', nameAr: 'العريشة' },
-  { code: 62, name: 'El Kantara', nameAr: 'القنطرة' },
-  { code: 63, name: 'Barika', nameAr: 'بريكة' },
-  { code: 64, name: 'Bou Saâda', nameAr: 'بوسعادة' },
-  { code: 65, name: 'Bir El Ater', nameAr: 'بئر العاتر' },
-  { code: 66, name: 'Ksar El Boukhari', nameAr: 'قصر البخاري' },
-  { code: 67, name: 'Ksar Chellala', nameAr: 'قصر الشلالة' },
-  { code: 68, name: 'Aïn Oussara', nameAr: 'عين وسارة' },
-  { code: 69, name: 'Messaad', nameAr: 'مسعد' },
+  { code: 60, name: 'Barika', nameAr: 'بريكة' },
+  { code: 61, name: 'El Kantara', nameAr: 'القنطرة' },
+  { code: 62, name: 'Bir El Ater', nameAr: 'بئر العاتر' },
+  { code: 63, name: 'El Aricha', nameAr: 'العريشة' },
+  { code: 64, name: 'Ksar Chellala', nameAr: 'قصر الشلالة' },
+  { code: 65, name: 'Aïn Ouessara', nameAr: 'عين وسارة' },
+  { code: 66, name: 'Messaad', nameAr: 'مسعد' },
+  { code: 67, name: 'Ksar El Boukhari', nameAr: 'قصر البخاري' },
+  { code: 68, name: 'Bou Saâda', nameAr: 'بوسعادة' },
+  { code: 69, name: 'El Abiodh Sidi Cheikh', nameAr: 'الأبيض سيدي الشيخ' },
 ]);
 
 /** Look up a wilaya by its official code (1–69). */
