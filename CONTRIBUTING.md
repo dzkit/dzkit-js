@@ -17,8 +17,21 @@ npm run demo      # build the playground into ./site, then serve it (e.g. npx se
 
 - **Every rule needs a source.** When you add or change a rule (a tax bracket, a prefix, a key algorithm), link the official text or a reliable article in the PR, and add the reference values from that source as tests.
 - **Real examples beat theory.** A RIP from a real document, an IRG amount from a real payslip: anonymise them, then add them to the tests.
-- **No dependencies.** The package stays dependency-free.
+- **No dependencies.** The published package stays dependency-free. Development tools (tests, build, dzkit-spec) are `devDependencies` and are never installed for users.
 - **Format-only checks say so.** If there is no public check-digit algorithm, document that the function checks the format only.
+
+## Shared test cases (dzkit-spec)
+
+The rules and their official sources live in [dzkit-spec](https://github.com/dzkit/dzkit-spec), shared by every dzkit package. `test/spec.test.ts` runs all of its test cases against this package; the version is pinned in `package.json`.
+
+To follow a new dzkit-spec release (for example after a finance law):
+
+```bash
+npm install -D dzkit-spec@https://github.com/dzkit/dzkit-spec/archive/refs/tags/v<version>.tar.gz
+npm test
+```
+
+Failing cases show what changed. Fix the code (or add a runner for a new operation in `test/spec.test.ts`), note it in `CHANGELOG.md`, and open a pull request.
 
 ## Yearly maintenance
 
