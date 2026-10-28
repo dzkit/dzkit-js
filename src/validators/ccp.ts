@@ -8,9 +8,20 @@
  *   KK         RIP key
  *
  * Both keys were checked against real RIP numbers (see test/ccp.test.ts).
+ *
+ * Codes and key parameters are generated from dzkit-spec (rule banking.ccp-rip).
  */
 
-export const RIP_PREFIX = '00799999';
+import {
+  CCP_KEY_MODULUS,
+  CCP_KEY_WEIGHTS_FROM_RIGHT,
+  RIP_ACCOUNT_DIGITS,
+  RIP_BANK_CODE,
+  RIP_BRANCH_CODE,
+  RIP_KEY,
+} from '../generated/spec-data';
+
+export const RIP_PREFIX = RIP_BANK_CODE + RIP_BRANCH_CODE;
 
 function digitsOnly(input: string): string {
   return input.replace(/[\s.\-_/]/g, '');
@@ -18,8 +29,8 @@ function digitsOnly(input: string): string {
 
 function normalizeAccount(account: string | number): string | null {
   const raw = digitsOnly(String(account));
-  if (!/^\d{1,10}$/.test(raw)) return null;
-  return raw.padStart(10, '0');
+  if (raw.length < 1 || raw.length > RIP_ACCOUNT_DIGITS || !/^\d+$/.test(raw)) return null;
+  return raw.padStart(RIP_ACCOUNT_DIGITS, '0');
 }
 
 /**
@@ -30,10 +41,10 @@ export function ccpKey(account: string | number): string {
   const acc = normalizeAccount(account);
   if (acc === null) throw new TypeError(`Invalid CCP account number: ${String(account)}`);
   let sum = 0;
-  for (let i = 0; i < 10; i++) {
-    sum += Number(acc[9 - i]) * (i + 4);
-  }
-  return String(sum % 100).padStart(2, '0');
+  CCP_KEY_WEIGHTS_FROM_RIGHT.forEach((weight, i) => {
+    sum += Number(acc[acc.length - 1 - i]) * weight;
+  });
+  return String(sum % CCP_KEY_MODULUS).padStart(2, '0');
 }
 
 /** Checks a CCP account number together with its key, e.g. isValidCcp('1234567890', '45'). */
@@ -48,7 +59,8 @@ export function isValidCcp(account: string | number, key: string | number): bool
 export function ripKey(account: string | number): string {
   const acc = normalizeAccount(account);
   if (acc === null) throw new TypeError(`Invalid CCP account number: ${String(account)}`);
-  const key = 97 - ((Number(acc) * 100 + 85) % 97);
+  const { modulus, multiplier, offset } = RIP_KEY;
+  const key = modulus - ((Number(acc) * multiplier + offset) % modulus);
   return String(key).padStart(2, '0');
 }
 

@@ -4,6 +4,12 @@
  * DGI portal (nifenligne.mf.gov.dz).
  */
 
+import { NIF_LENGTHS, NIS_LENGTHS } from '../generated/spec-data';
+
+function hasLength(digits: string, lengths: readonly number[]): boolean {
+  return /^\d+$/.test(digits) && lengths.includes(digits.length);
+}
+
 function clean(input: string): string {
   return input.replace(/[\s.\-]/g, '');
 }
@@ -13,7 +19,7 @@ function clean(input: string): string {
  * or secondary establishment.
  */
 export function isValidNif(input: string): boolean {
-  return /^(\d{15}|\d{20})$/.test(clean(input));
+  return hasLength(clean(input), NIF_LENGTHS);
 }
 
 /**
@@ -22,7 +28,7 @@ export function isValidNif(input: string): boolean {
  * (décret exécutif n° 97-396, articles 4 and 5).
  */
 export function isValidNis(input: string): boolean {
-  return /^(\d{15}|\d{18})$/.test(clean(input));
+  return hasLength(clean(input), NIS_LENGTHS);
 }
 
 /** Removes spaces, dots and dashes: "408 020 000 150 039" → "408020000150039". */

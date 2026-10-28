@@ -14,6 +14,14 @@
  * today; if it is introduced, the prefix will no longer prove the current operator.
  */
 
+import {
+  PHONE_FREEPHONE_BLOCKS,
+  PHONE_MOBILE_BLOCKS,
+  PHONE_OPERATORS,
+  PHONE_SERVICE_BLOCKS,
+  PHONE_VOIP_BLOCKS,
+} from '../generated/spec-data';
+
 export type PhoneType = 'mobile' | 'landline' | 'service' | 'voip';
 export type MobileOperator = 'Ooredoo' | 'Mobilis' | 'Djezzy';
 
@@ -39,38 +47,12 @@ export interface ParsedPhone {
 
 /**
  * Mobile blocks allocated by ARPCE, as 3-digit prefixes after the leading 0
- * (inclusive ranges). Source: arpce.dz, "Numérotation" page, updated 11 March 2025.
+ * (inclusive ranges). Generated from dzkit-spec (rule telecom.phone).
  */
-export const MOBILE_BLOCKS: Readonly<Record<MobileOperator, readonly (readonly [number, number])[]>> = Object.freeze({
-  // Wataniya Télécom Algérie (brand: Ooredoo)
-  Ooredoo: [
-    [540, 542],
-    [549, 549],
-    [550, 559],
-    [560, 562],
-  ],
-  // Algérie Télécom Mobile (brand: Mobilis)
-  Mobilis: [
-    [655, 659],
-    [660, 669],
-    [670, 676],
-    [696, 699],
-  ],
-  // Optimum Télécom Algérie (brand: Djezzy)
-  Djezzy: [
-    [770, 779],
-    [780, 784],
-    [790, 799],
-  ],
-});
+export const MOBILE_BLOCKS: Readonly<Record<MobileOperator, readonly (readonly [number, number])[]>> =
+  Object.freeze(PHONE_MOBILE_BLOCKS);
 
-const OPERATORS: Record<string, MobileOperator> = {
-  '5': 'Ooredoo',
-  '6': 'Mobilis',
-  '7': 'Djezzy',
-};
-
-const VOIP_BLOCKS = ['961', '982'];
+const OPERATORS: Readonly<Record<string, MobileOperator>> = PHONE_OPERATORS;
 
 function inBlocks(prefix: number, blocks: readonly (readonly [number, number])[]): boolean {
   return blocks.some(([from, to]) => prefix >= from && prefix <= to);
@@ -99,9 +81,14 @@ export function parsePhone(input: string): ParsedPhone | null {
   }
   if (/^8\d{8}$/.test(n)) {
     const block = Number(n.slice(0, 3));
-    return { type: 'service', ...base, freephone: block === 800, allocated: block >= 800 && block <= 809 && block !== 807 };
+    return {
+      type: 'service',
+      ...base,
+      freephone: inBlocks(block, PHONE_FREEPHONE_BLOCKS),
+      allocated: inBlocks(block, PHONE_SERVICE_BLOCKS),
+    };
   }
-  if (/^9\d{8}$/.test(n)) return { type: 'voip', ...base, allocated: VOIP_BLOCKS.includes(n.slice(0, 3)) };
+  if (/^9\d{8}$/.test(n)) return { type: 'voip', ...base, allocated: inBlocks(Number(n.slice(0, 3)), PHONE_VOIP_BLOCKS) };
   if (/^[234]\d{7}$/.test(n)) return { type: 'landline', ...base, areaCode: n.slice(0, 2) };
   return null;
 }

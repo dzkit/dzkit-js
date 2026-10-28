@@ -6,3 +6,4 @@ export * from './validators/plate';
 export * from './words/index';
 export * from './payroll/irg';
 export * from './payroll/salary';
+export { SPEC_VERSION } from './generated/spec-data';
