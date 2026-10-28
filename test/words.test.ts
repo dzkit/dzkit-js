@@ -1,0 +1,89 @@
+import { describe, expect, it } from 'vitest';
+import { amountToWords, amountToWordsAr, amountToWordsFr, toWordsAr, toWordsFr } from '../src';
+
+describe('French', () => {
+  it.each([
+    [0, 'zéro'],
+    [1, 'un'],
+    [16, 'seize'],
+    [17, 'dix-sept'],
+    [21, 'vingt et un'],
+    [22, 'vingt-deux'],
+    [71, 'soixante et onze'],
+    [72, 'soixante-douze'],
+    [80, 'quatre-vingts'],
+    [81, 'quatre-vingt-un'],
+    [91, 'quatre-vingt-onze'],
+    [99, 'quatre-vingt-dix-neuf'],
+    [100, 'cent'],
+    [101, 'cent un'],
+    [200, 'deux cents'],
+    [201, 'deux cent un'],
+    [280, 'deux cent quatre-vingts'],
+    [1000, 'mille'],
+    [1001, 'mille un'],
+    [2000, 'deux mille'],
+    [80000, 'quatre-vingt mille'],
+    [200000, 'deux cent mille'],
+    [1_000_000, 'un million'],
+    [2_000_000, 'deux millions'],
+    [80_000_000, 'quatre-vingts millions'],
+    [200_000_000, 'deux cents millions'],
+    [1_280_000, 'un million deux cent quatre-vingt mille'],
+    [3_000_000_000, 'trois milliards'],
+  ])('%i → %s', (n, words) => expect(toWordsFr(n)).toBe(words));
+
+  it('writes DZD amounts', () => {
+    expect(amountToWordsFr(1)).toBe('un dinar algérien');
+    expect(amountToWordsFr(1250.5)).toBe('mille deux cent cinquante dinars algériens et cinquante centimes');
+    expect(amountToWordsFr(0.01)).toBe('zéro dinar algérien et un centime');
+    expect(amountToWordsFr(1_000_000)).toBe('un million de dinars algériens');
+    expect(amountToWordsFr(1_000_100)).toBe('un million cent dinars algériens');
+  });
+
+  it('rounds to the centime', () => {
+    expect(amountToWordsFr(10.999)).toBe('onze dinars algériens');
+    expect(amountToWordsFr(0.1 + 0.2)).toBe('zéro dinar algérien et trente centimes');
+  });
+
+  it('rejects negative or invalid amounts', () => {
+    expect(() => amountToWordsFr(-1)).toThrow(RangeError);
+    expect(() => amountToWordsFr(Number.NaN)).toThrow(RangeError);
+    expect(() => toWordsFr(1.5)).toThrow(RangeError);
+  });
+});
+
+describe('Arabic', () => {
+  it.each([
+    [0, 'صفر'],
+    [1, 'واحد'],
+    [11, 'أحد عشر'],
+    [12, 'اثنا عشر'],
+    [13, 'ثلاثة عشر'],
+    [21, 'واحد وعشرون'],
+    [100, 'مائة'],
+    [250, 'مائتان وخمسون'],
+    [1000, 'ألف'],
+    [2000, 'ألفان'],
+    [3000, 'ثلاثة آلاف'],
+    [11000, 'أحد عشر ألفا'],
+    [100000, 'مائة ألف'],
+    [2500, 'ألفان وخمسمائة'],
+    [1_000_000, 'مليون'],
+    [5_000_000, 'خمسة ملايين'],
+  ])('%i → %s', (n, words) => expect(toWordsAr(n)).toBe(words));
+
+  it('writes DZD amounts with noun and adjective agreement', () => {
+    expect(amountToWordsAr(1)).toBe('دينار جزائري واحد');
+    expect(amountToWordsAr(2)).toBe('ديناران جزائريان');
+    expect(amountToWordsAr(3)).toBe('ثلاثة دنانير جزائرية');
+    expect(amountToWordsAr(15)).toBe('خمسة عشر دينارا جزائريا');
+    expect(amountToWordsAr(100)).toBe('مائة دينار جزائري');
+    expect(amountToWordsAr(1250.5)).toBe('ألف ومائتان وخمسون دينارا جزائريا وخمسون سنتيما');
+  });
+
+  it('amountToWords switches language', () => {
+    expect(amountToWords(2, 'fr')).toBe('deux dinars algériens');
+    expect(amountToWords(2, 'ar')).toBe('ديناران جزائريان');
+  });
+});
