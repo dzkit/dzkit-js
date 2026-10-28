@@ -12,7 +12,7 @@ Les petites fonctions que chaque application algérienne finit par réécrire, t
 - **Montants en lettres** : en dinars, en français et en arabe, pour les factures
 - **Paie** : IRG (article 104) et CNAS, brut ↔ net
 
-Aucune dépendance, types TypeScript inclus, Node 18+ et navigateur.
+Aucune dépendance, types TypeScript inclus, Node 20+ et navigateur.
 
 ```bash
 npm install dzkit
