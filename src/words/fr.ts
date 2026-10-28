@@ -103,8 +103,27 @@ export function amountToWordsFr(amount: number, currency: FrCurrency = DINAR_FR)
 }
 
 export function splitAmount(amount: number): { whole: number; cents: number } {
-  if (!Number.isFinite(amount) || amount < 0) throw new RangeError(`Expected a non-negative amount, got ${amount}`);
-  const totalCents = Math.round(amount * 100);
-  if (!Number.isSafeInteger(totalCents)) throw new RangeError(`Amount too large: ${amount}`);
+  const totalCents = toCents(amount);
   return { whole: Math.floor(totalCents / 100), cents: totalCents % 100 };
+}
+
+/**
+ * Amount in DA to whole centimes, rounding half up on the amount as written:
+ * 1.005 → 101 and 2.675 → 268. Multiplying by 100 first would give 100.49999…
+ * for 1.005, because computers store decimals in binary.
+ */
+export function toCents(amount: number): number {
+  if (!Number.isFinite(amount) || amount < 0) throw new RangeError(`Expected a non-negative amount, got ${amount}`);
+  // The shortest decimal string that represents the number, e.g. "1.005".
+  let text = String(amount);
+  if (/e/i.test(text)) {
+    if (amount >= 1) throw new RangeError(`Amount too large: ${amount}`);
+    text = amount.toFixed(20);
+  }
+  const [int = '0', frac = ''] = text.split('.');
+  const digits = (frac + '000').slice(0, 3);
+  let cents = Number(int) * 100 + Number(digits.slice(0, 2));
+  if (Number(digits[2]) >= 5) cents += 1;
+  if (!Number.isSafeInteger(cents)) throw new RangeError(`Amount too large: ${amount}`);
+  return cents;
 }

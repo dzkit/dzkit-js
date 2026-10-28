@@ -74,4 +74,22 @@ describe('gross to net', () => {
     expect(r.net).toBeGreaterThanOrEqual(47_558);
     expect(r.gross).toBeCloseTo(60_000, 0);
   });
+
+  it('net to gross gives the smallest gross, to the centime, reaching the net', () => {
+    for (const regime of ['salaried', 'retired'] as const) {
+      for (let gross = 20_000; gross <= 120_000; gross += 173.37) {
+        const g = Math.round(gross * 100) / 100;
+        const { net } = grossToNet(g, { regime });
+        const found = netToGross(net, { regime });
+        expect(found.net).toBeGreaterThanOrEqual(net);
+        expect(found.gross).toBeLessThanOrEqual(g);
+        // One centime less no longer reaches the net (checked across the dip at 30 000 DA).
+        expect(grossToNet(Math.round(found.gross * 100 - 1) / 100, { regime }).net).toBeLessThan(net);
+      }
+    }
+  });
+
+  it('net to gross of 0 is 0', () => {
+    expect(netToGross(0).gross).toBe(0);
+  });
 });

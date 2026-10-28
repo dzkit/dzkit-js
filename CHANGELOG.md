@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.1 — 2026-10-28
+
+### Fixed
+
+- **Arabic amounts in words: construct form before the currency.** When a number is directly followed by the noun it counts, the dual loses its ن and ألفا / مليونا become ألف / مليون. Round amounts were wrong before: 200 DA is now مائتا دينار جزائري (was مائتان دينار), 2 000 DA ألفا دينار (was ألفان دينار), 50 000 DA خمسون ألف دينار (was خمسون ألفا دينار), 200 000 مائتا ألف (was مائتان ألف). Amounts not ending in a dual or in thousands/millions are unchanged.
+- **Rounding to the centime is now half up on the amount as written.** 1.005 DA gave "un dinar" (no centime) because of how computers store decimals; it now gives "un dinar et un centime", like 2.675 DA already gave 68 centimes. About 0.5 % of amounts with three or more decimals change. New export: `toCents`.
+- **`netToGross` now returns the smallest gross, to the centime, whose net reaches the target.** It could return a gross whose net was 0.01 DA short (about 3.6 % of cases), or a few centimes more than needed. `netToGross(0)` now returns 0 instead of 0.01.
+
+French amounts, the IRG and gross-to-net are unchanged.
+
 ## 0.2.0 — 2026-10-28
 
 ### Changed
